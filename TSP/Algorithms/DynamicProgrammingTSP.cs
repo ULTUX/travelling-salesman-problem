@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace TSP
+namespace TSP.Algorithms
 {
     /**
      * Algorithm based on: https://www.youtube.com/watch?v=cY4HiiFHO1o
@@ -145,7 +145,7 @@ namespace TSP
             }
             else
             {
-                for (int i = at; i < len; i++)
+                for (var i = at; i < len; i++)
                 {
                     set ^= (1 << i);
                     Combinations(set, i+1, setN - 1, len, subsets);

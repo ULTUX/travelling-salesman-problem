@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using TSP.Algorithms;
 
 namespace TSP
 {

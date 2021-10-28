@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-namespace TSP
+namespace TSP.Algorithms
 {
     /**
      * Simple brute force algorithm for finding best path in Travelling Salesman Problem.
