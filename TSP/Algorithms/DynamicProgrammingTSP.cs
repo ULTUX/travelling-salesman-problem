@@ -52,7 +52,7 @@ namespace TSP.Algorithms
             {
 
                 var combinationList = new List<int>();
-                Combinations(0, 0, i, size, combinationList);
+                FindCombinations(0, 0, i, size, combinationList);
                 foreach (var combination in combinationList.Where(combination => !IsNotPresent(_startVertex, combination)))
                 {
                     // Find node that was added using combination
@@ -78,7 +78,7 @@ namespace TSP.Algorithms
 
             }
             
-            // Finished algorithm, find min cost in memo table
+            // Finished algorithm, find min cost in pathCost array
             var endStateMask = (1 << size) - 1;
             
             var minCost = int.MaxValue;
@@ -134,7 +134,7 @@ namespace TSP.Algorithms
         }
 
         // Generate a set of different numbers (of length len) whose binary representation only contain pre-set number of bits (setN argument).
-        private static void Combinations(int set, int at, int setN, int len, ICollection<int> subsets)
+        private static void FindCombinations(int set, int at, int setN, int len, ICollection<int> subsets)
         {
             var leftElem = len - at;
             if (leftElem < setN) return;
@@ -148,7 +148,7 @@ namespace TSP.Algorithms
                 for (var i = at; i < len; i++)
                 {
                     set ^= (1 << i);
-                    Combinations(set, i+1, setN - 1, len, subsets);
+                    FindCombinations(set, i+1, setN - 1, len, subsets);
                     
                     // Revert variable back and try different bit
                     set ^= (1 << i);

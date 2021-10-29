@@ -120,12 +120,12 @@ namespace TSP
                 Console.WriteLine();
                 var isSym = key.Key.Equals(ConsoleKey.S);
 
-                Console.Write("Minimalna wielkość: ");
+                Console.Write("Minimalna waga: ");
 
                 readVal = Console.ReadLine();
                 var minVal = ParseFromString(readVal);
                 
-                Console.Write("Maksymalna wielkość: ");
+                Console.Write("Maksymalna waga: ");
 
                 readVal = Console.ReadLine();
                 var maxVal = ParseFromString(readVal);
