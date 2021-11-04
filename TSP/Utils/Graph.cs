@@ -18,9 +18,15 @@ namespace TSP
             _graph = graph;
         }
 
-        public int[,] GetGraph() { return _graph; }
+        public int[,] GetGraph()
+        {
+            return _graph;
+        }
 
-        public int GetSize() { return _size; }
+        public int GetSize()
+        {
+            return _size;
+        }
 
         public int GetWeight(int a, int b)
         {
@@ -29,15 +35,11 @@ namespace TSP
 
         public void Print()
         {
-            for (int i = 0; i < _size; i++)
+            for (var i = 0; i < _size; i++)
             {
-                for (int j = 0; j < _size; j++)
-                {
-                    Console.Write(_graph[i,j]+" ");
-                }
+                for (var j = 0; j < _size; j++) Console.Write(_graph[i, j] + " ");
                 Console.WriteLine();
             }
         }
-
     }
 }

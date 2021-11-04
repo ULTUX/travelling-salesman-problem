@@ -5,10 +5,10 @@ namespace TSP
     public class RandomGraphGenerator
     {
         private readonly bool _isSymmetric;
-        private int _minCost;
-        private int _maxCost;
-        private int _size;
-        private Random _randomGenerator;
+        private readonly int _maxCost;
+        private readonly int _minCost;
+        private readonly Random _randomGenerator;
+        private readonly int _size;
 
         public RandomGraphGenerator(bool isSymmetric, int minCost, int maxCost, int size, int? seed)
         {
@@ -21,42 +21,35 @@ namespace TSP
 
         public Graph GenerateRandomGraph()
         {
-            int[,] adjMatrix = new int[_size,_size];
+            var adjMatrix = new int[_size, _size];
             if (_isSymmetric)
-            {
-                for (int i = 0; i < _size; i++)
+                for (var i = 0; i < _size; i++)
+                for (var j = i; j < _size; j++)
                 {
-                    for (int j = i; j < _size; j++)
+                    if (i == j)
                     {
-                        if (i == j)
-                        {
-                            adjMatrix[i,j] = -1;
-                            continue;
-                        }
-                        adjMatrix[i, j] = _randomGenerator.Next(_minCost, _maxCost);
-                        adjMatrix[j, i] = adjMatrix[i, j];
+                        adjMatrix[i, j] = -1;
+                        continue;
                     }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < _size; i++)
-                {
-                    for (int j = 0; j < _size; j++)
-                    {
-                        if (i == j)
-                        {
-                            adjMatrix[i,j] = -1;
-                            continue;
-                        }
-                        adjMatrix[i, j] = _randomGenerator.Next(_minCost, _maxCost);
-                    }
-                }
-            }
 
-            Graph graph = new Graph(_size, adjMatrix);
+                    adjMatrix[i, j] = _randomGenerator.Next(_minCost, _maxCost);
+                    adjMatrix[j, i] = adjMatrix[i, j];
+                }
+            else
+                for (var i = 0; i < _size; i++)
+                for (var j = 0; j < _size; j++)
+                {
+                    if (i == j)
+                    {
+                        adjMatrix[i, j] = -1;
+                        continue;
+                    }
+
+                    adjMatrix[i, j] = _randomGenerator.Next(_minCost, _maxCost);
+                }
+
+            var graph = new Graph(_size, adjMatrix);
             return graph;
         }
-        
     }
 }

@@ -11,6 +11,7 @@ namespace TSP.Algorithms
         private readonly Graph _graph;
         private readonly int _startVertex;
         private int[] _permutation;
+
         public BruteForce(Graph graph, int startVertex)
         {
             _graph = graph;
@@ -25,7 +26,7 @@ namespace TSP.Algorithms
             var minPath = int.MaxValue;
             var minPermutation = new int[_graph.GetSize() - 1];
 
-            _permutation = new int[_graph.GetSize()-1];
+            _permutation = new int[_graph.GetSize() - 1];
 
             var curIndex = 0;
             for (var i = 0; i < _graph.GetSize(); i++)
@@ -40,7 +41,7 @@ namespace TSP.Algorithms
                 var currentPathLen = 0;
 
                 var prev = _startVertex;
-                
+
                 foreach (var t in _permutation)
                 {
                     currentPathLen += _graph.GetWeight(prev, t);
@@ -53,16 +54,13 @@ namespace TSP.Algorithms
                 minPath = currentPathLen;
                 minPermutation = (int[]) _permutation.Clone();
             } while (GetNextPermutation());
-            
+
             //Finished algorithm, print results
-            
-            Console.Write("Found min path. Path: "+_startVertex+" ");
+
+            Console.Write("Found min path. Path: " + _startVertex + " ");
             var prevE = _startVertex;
-            foreach (var t in minPermutation)
-            {
-                Console.Write(t+" ");
-            }
-            Console.WriteLine("\nPath length: "+minPath+".");
+            foreach (var t in minPermutation) Console.Write(t + " ");
+            Console.WriteLine("\nPath length: " + minPath + ".");
         }
 
         /**
@@ -83,27 +81,30 @@ namespace TSP.Algorithms
             }
 
             if (lastIncreasing < 0) return false;
-            
+
             //Now, when we have last increasing element, find its successor
             var successor = _permutation.Length - 1;
-            
-            for (var i = _permutation.Length -1; i > lastIncreasing; i--)
+
+            for (var i = _permutation.Length - 1; i > lastIncreasing; i--)
             {
                 if (_permutation[i] <= _permutation[lastIncreasing]) continue;
                 successor = i;
                 break;
             }
-            
+
             //Swap successor with last increasing element
             (_permutation[successor], _permutation[lastIncreasing]) =
                 (_permutation[lastIncreasing], _permutation[successor]);
-            
+
             //Reverse order of decreasing elements (revert back to first permutation)
             //TODO: Verify whether this function works properly
             var l = 1;
-            for (var i = _permutation.Length-1; i > (_permutation.Length - 1 - lastIncreasing)/2+lastIncreasing; i--)
+            for (var i = _permutation.Length - 1;
+                i > (_permutation.Length - 1 - lastIncreasing) / 2 + lastIncreasing;
+                i--)
             {
-                (_permutation[i], _permutation[lastIncreasing + l]) = (_permutation[lastIncreasing + l], _permutation[i]);
+                (_permutation[i], _permutation[lastIncreasing + l]) =
+                    (_permutation[lastIncreasing + l], _permutation[i]);
                 l++;
             }
 

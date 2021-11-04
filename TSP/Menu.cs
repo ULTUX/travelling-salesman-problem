@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using TSP.Algorithms;
+using TSP.Utils;
 
 namespace TSP
 {
@@ -20,7 +21,7 @@ namespace TSP
             {
                 Console.WriteLine("Co chcesz zrobić?");
                 Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf");
-                if (_currentGraph != null) 
+                if (_currentGraph != null)
                     Console.WriteLine("\t3. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
                                       "4. Rozwiazać problem komiwojażera algorytmem DP");
                 Console.WriteLine("\t0. Wyłączyć program");
@@ -41,29 +42,25 @@ namespace TSP
                     default:
                     {
                         if (_currentGraph != null)
-                        {
                             switch (key.Key)
                             {
-                                case(ConsoleKey.D3):
+                                case ConsoleKey.D3:
                                     RunBruteForceAlg();
                                     break;
-                                case (ConsoleKey.D4):
+                                case ConsoleKey.D4:
                                     RunDpAlg();
                                     break;
                             }
-                        }
                         else
-                        {
                             Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
-                        }
+
                         break;
                     }
                 }
             }
-            
+
             Console.WriteLine("Zatrzymywanie programu...");
             Thread.Sleep(500);
-            
         }
 
         private void RunDpAlg()
@@ -117,6 +114,7 @@ namespace TSP
                     Console.WriteLine("Podano złe dane!");
                     return;
                 }
+
                 Console.WriteLine();
                 var isSym = key.Key.Equals(ConsoleKey.S);
 
@@ -124,21 +122,18 @@ namespace TSP
 
                 readVal = Console.ReadLine();
                 var minVal = ParseFromString(readVal);
-                
+
                 Console.Write("Maksymalna waga: ");
 
                 readVal = Console.ReadLine();
                 var maxVal = ParseFromString(readVal);
-                
+
                 Console.Write("Seed (opcjonalne): ");
                 readVal = Console.ReadLine();
 
                 int? seed = null;
-                if (readVal != null && !readVal.Equals(""))
-                {
-                    seed = ParseFromString(readVal);
-                }
-                
+                if (readVal != null && !readVal.Equals("")) seed = ParseFromString(readVal);
+
                 Console.WriteLine("Generowanie grafu...");
 
                 var generator = new RandomGraphGenerator(isSym, minVal, maxVal, size, seed);
@@ -146,13 +141,11 @@ namespace TSP
                 _currentGraph = generator.GenerateRandomGraph();
                 Console.WriteLine("Wygenerowano graf: ");
                 _currentGraph.Print();
-
             }
             catch
             {
                 Console.WriteLine("Podano zły argument!");
             }
-
         }
 
         private void ReadGraphFromFile()
@@ -175,7 +168,8 @@ namespace TSP
 
         private static int ParseFromString(string data)
         {
-            if (data == null || !int.TryParse((string) data, out var n)) throw new ArgumentException("Podano złe dane wejściowe!");
+            if (data == null || !int.TryParse(data, out var n))
+                throw new ArgumentException("Podano złe dane wejściowe!");
             return n;
         }
     }

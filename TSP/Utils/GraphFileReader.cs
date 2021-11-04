@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
-namespace TSP
+namespace TSP.Utils
 {
     /**
      * Simple class that reads graphs from file.
@@ -29,10 +28,11 @@ namespace TSP
             try
             {
                 Console.WriteLine("Reading data from file...");
-                var fileLines = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + _fileName);
+                var fileLines =
+                    File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + _fileName);
                 Console.WriteLine("Number of lines read: {0}", fileLines.Length);
                 _graphSize = Convert.ToInt32(fileLines[0]);
-                var adjMatrix = new int[_graphSize,_graphSize];
+                var adjMatrix = new int[_graphSize, _graphSize];
                 Console.WriteLine("Graph size: {0}", _graphSize);
 
                 for (var i = 0; i < _graphSize; i++)
@@ -42,10 +42,9 @@ namespace TSP
                     foreach (var t in stringData)
                     {
                         if (t.Equals("")) continue;
-                        adjMatrix[i,realIndex] = Convert.ToInt32(t);
+                        adjMatrix[i, realIndex] = Convert.ToInt32(t);
                         realIndex++;
                     }
-                    
                 }
 
                 _readGraph = new Graph(_graphSize, adjMatrix);
@@ -53,7 +52,6 @@ namespace TSP
                 _readGraph.Print();
 
                 return _readGraph;
-
             }
             catch (Exception exception)
             {
