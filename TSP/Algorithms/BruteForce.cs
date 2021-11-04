@@ -60,8 +60,7 @@ namespace TSP.Algorithms
             var prevE = _startVertex;
             foreach (var t in minPermutation)
             {
-                Console.Write(t+" - ");
-                prevE = t;
+                Console.Write(t+" ");
             }
             Console.WriteLine("\nPath length: "+minPath+".");
         }
