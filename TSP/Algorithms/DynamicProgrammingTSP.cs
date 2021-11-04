@@ -25,7 +25,7 @@ namespace TSP.Algorithms
             var size = adjMatrix.GetLength(0);
 
             var pathCost = new int[size, (int) Math.Pow(2, size)];
-                
+            
             // Initialize memo array (this array will store all sub-paths).
             // Second dimension of this array will be used as binary number that stores current state of every node.
             // Prepare the array by filling it with infinity.
