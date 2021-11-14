@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TSP
+namespace TSP.Utils
 {
     public class Graph
     {

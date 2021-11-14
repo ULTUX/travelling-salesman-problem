@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TSP.Utils;
 
 namespace TSP.Algorithms
 {
@@ -30,8 +31,8 @@ namespace TSP.Algorithms
             // Second dimension of this array will be used as binary number that stores current state of every node.
             // Prepare the array by filling it with infinity.
             for (var i = 0; i < size; i++)
-                for (var j = 0; j < pathCost.GetLength(1); j++)
-                    pathCost[i, j] = int.MaxValue;
+            for (var j = 0; j < pathCost.GetLength(1); j++)
+                pathCost[i, j] = int.MaxValue;
 
             // Calculate and write to array cost to get to every node from start node
             for (var i = 0; i < size; i++)
@@ -69,7 +70,6 @@ namespace TSP.Algorithms
                         }
 
                         pathCost[n, combination] = minPath;
-                        
                     }
             }
 

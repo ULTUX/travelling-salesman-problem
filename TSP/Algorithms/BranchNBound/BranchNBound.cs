@@ -1,88 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using Priority_Queue;
+﻿using System.Collections.Generic;
+using TSP.Utils;
 
-namespace TSP.Algorithms
+namespace TSP.Algorithms.BranchNBound
 {
-    public class BranchNBound
+    public abstract class BranchNBound
     {
-        private static readonly IComparer<BranchNBoundNode> nodeComparer =
-            Comparer<BranchNBoundNode>.Create((x, y) => x.Cost > y.Cost ? 1 : x.Cost < y.Cost ? -1 : 0);
+        protected readonly Graph Graph;
+        protected readonly int StartVertex;
 
-        private readonly Graph _graph;
-        private readonly int _startVertex;
-
-        private readonly SimplePriorityQueue<BranchNBoundNode, BranchNBoundNode> queue = new(nodeComparer);
-
-
-        public BranchNBound(Graph graph, int startVertex)
+        protected BranchNBound(Graph graph, int startVertex)
         {
-            _graph = graph;
-            _startVertex = startVertex;
+            Graph = graph;
+            StartVertex = startVertex;
         }
 
-        public void Start()
+        protected static (int, int[,]) MinimizeMatrix(int[,] graph)
         {
-            var path = Solve();
-            if (path == null)
-            {
-                Console.WriteLine("Bad graph, could not calculate minimum path cost.");
-                return;
-            }
-
-            var cost = 0;
-
-            path.ForEach(tuple =>
-            {
-                Console.WriteLine(tuple.Item1 + " --- " + tuple.Item2);
-                cost += _graph.GetWeight(tuple.Item1, tuple.Item2);
-            });
-
-            Console.WriteLine("Path cost: {0}", cost);
-        }
-
-        private List<(int, int)> Solve()
-        {
-            var (cost, reduced) = MinimizeMatrix(_graph.GetGraph());
-
-            var root = new BranchNBoundNode(reduced, cost, _startVertex, 0, new List<(int, int)>(), null);
-
-
-            queue.Enqueue(root, root);
-
-            while (queue.Count > 0)
-            {
-                var node = queue.Dequeue();
-                var v = node.Vertex;
-                if (node.Level == _graph.GetSize() - 1)
-                {
-                    //Reached leaf node, update upper bound.
-                    node.Path.Add((v, 0));
-                    Console.WriteLine(node.Cost);
-                    return node.Path;
-                }
-
-                var children = FindPossibleChildren(node);
-                children.ForEach(boundNode => queue.Enqueue(boundNode, boundNode));
-            }
-
-            return null;
-        }
-
-
-        private (int, int[,]) MinimizeMatrix(int[,] graph)
-        {
-            (var minR, var minGraphR) = minimizeColsOrRows(graph, true);
-            (var minC, var minGraphC) = minimizeColsOrRows(minGraphR, false);
+            var (minR, minGraphR) = MinimizeColsOrRows(graph, true);
+            var (minC, minGraphC) = MinimizeColsOrRows(minGraphR, false);
             return (minR + minC, minGraphC);
         }
 
 
-        private List<BranchNBoundNode> FindPossibleChildren(BranchNBoundNode parent)
+        protected List<BranchNBoundNode> FindPossibleChildren(BranchNBoundNode parent)
         {
             var children = new List<BranchNBoundNode>();
 
-            for (var i = 0; i < _graph.GetSize(); i++)
+            for (var i = 0; i < Graph.GetSize(); i++)
             {
                 if (parent.Reduced[parent.Vertex, i] == -1) continue;
 
@@ -112,7 +56,7 @@ namespace TSP.Algorithms
             return MinimizeMatrix(graph2);
         }
 
-        private (int, int[,]) minimizeColsOrRows(int[,] graph, bool isRow)
+        private static (int, int[,]) MinimizeColsOrRows(int[,] graph, bool isRow)
         {
             var minimized = (int[,]) graph.Clone();
             var min = 0;
@@ -143,7 +87,7 @@ namespace TSP.Algorithms
             return (min, minimized);
         }
 
-        private class BranchNBoundNode
+        protected class BranchNBoundNode
         {
             public readonly int Cost;
             public readonly int Level;

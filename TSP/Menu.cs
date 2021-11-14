@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using TSP.Algorithms;
+using TSP.Algorithms.BranchNBound;
 using TSP.Utils;
 
 namespace TSP
@@ -23,7 +24,7 @@ namespace TSP
                 Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf");
                 if (_currentGraph != null)
                     Console.WriteLine("\t3. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
-                                      "4. Rozwiazać problem komiwojażera algorytmem DP\n\t5.Rozwiązać proglem komiwojadżera algorytmem B&B");
+                                      "4. Rozwiazać problem komiwojażera algorytmem DP\n\t5.Rozwiązać proglem komiwojadżera algorytmem B&B (min)\n\t6. Rozwiązać proglem komiwojadżera algorytmem B&B (DFS)");
                 Console.WriteLine("\t0. Wyłączyć program");
                 var key = Console.ReadKey();
                 Console.WriteLine();
@@ -51,7 +52,13 @@ namespace TSP
                                     RunDpAlg();
                                     break;
                                 case ConsoleKey.D5:
-                                    RunBNBAlg();
+                                    RunBnbMinAlg();
+                                    break;
+                                case ConsoleKey.D6:
+                                    RunBnbDfsAlg();
+                                    break;
+                                default:
+                                    Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
                                     break;
                             }
                         else
@@ -66,7 +73,7 @@ namespace TSP
             Thread.Sleep(500);
         }
 
-        private void RunBNBAlg()
+        private void RunBnbDfsAlg()
         {
             Console.WriteLine("Uruchamianie algorytmu...");
             Console.Write("Wierzchołek początkowy: ");
@@ -74,8 +81,25 @@ namespace TSP
             try
             {
                 var startVertex = ParseFromString(readVal);
-                var bNBAlg = new BranchNBound(_currentGraph, startVertex);
-                bNBAlg.Start();
+                var bNbAlg = new BranchNBoundDfs(_currentGraph, startVertex);
+                bNbAlg.Start();
+            }
+            catch
+            {
+                Console.WriteLine("Nieprawidłowe dane.");
+            }
+        }
+
+        private void RunBnbMinAlg()
+        {
+            Console.WriteLine("Uruchamianie algorytmu...");
+            Console.Write("Wierzchołek początkowy: ");
+            var readVal = Console.ReadLine();
+            try
+            {
+                var startVertex = ParseFromString(readVal);
+                var bNbAlg = new BranchNBoundMin(_currentGraph, startVertex);
+                bNbAlg.Start();
             }
             catch
             {
@@ -91,8 +115,8 @@ namespace TSP
             try
             {
                 var startVertex = ParseFromString(readVal);
-                var DynamicProgrammingTsp = new DynamicProgrammingTsp(_currentGraph, startVertex);
-                DynamicProgrammingTsp.Start();
+                var dynamicProgrammingTsp = new DynamicProgrammingTsp(_currentGraph, startVertex);
+                dynamicProgrammingTsp.Start();
             }
             catch
             {
