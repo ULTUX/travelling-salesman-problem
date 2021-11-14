@@ -23,7 +23,7 @@ namespace TSP
                 Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf");
                 if (_currentGraph != null)
                     Console.WriteLine("\t3. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
-                                      "4. Rozwiazać problem komiwojażera algorytmem DP");
+                                      "4. Rozwiazać problem komiwojażera algorytmem DP\n\t5.Rozwiązać proglem komiwojadżera algorytmem B&B");
                 Console.WriteLine("\t0. Wyłączyć program");
                 var key = Console.ReadKey();
                 Console.WriteLine();
@@ -50,6 +50,9 @@ namespace TSP
                                 case ConsoleKey.D4:
                                     RunDpAlg();
                                     break;
+                                case ConsoleKey.D5:
+                                    RunBNBAlg();
+                                    break;
                             }
                         else
                             Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
@@ -61,6 +64,23 @@ namespace TSP
 
             Console.WriteLine("Zatrzymywanie programu...");
             Thread.Sleep(500);
+        }
+
+        private void RunBNBAlg()
+        {
+            Console.WriteLine("Uruchamianie algorytmu...");
+            Console.Write("Wierzchołek początkowy: ");
+            var readVal = Console.ReadLine();
+            try
+            {
+                var startVertex = ParseFromString(readVal);
+                var bNBAlg = new BranchNBound(_currentGraph, startVertex);
+                bNBAlg.Start();
+            }
+            catch
+            {
+                Console.WriteLine("Nieprawidłowe dane.");
+            }
         }
 
         private void RunDpAlg()
