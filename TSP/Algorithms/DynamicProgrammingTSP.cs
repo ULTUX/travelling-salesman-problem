@@ -8,19 +8,18 @@ namespace TSP.Algorithms
     /**
      * Algorithm based on: https://www.youtube.com/watch?v=cY4HiiFHO1o
      */
-    public class DynamicProgrammingTsp
+    public class DynamicProgrammingTsp : TspAlgorithm
     {
-        private readonly Graph _graph;
-        private readonly int _startVertex;
-
-        public DynamicProgrammingTsp(Graph graph, int startVertex)
+        public DynamicProgrammingTsp(Graph graph, int startVertex) : base(graph, startVertex)
         {
-            _graph = graph;
-            _startVertex = startVertex;
+        }
+
+        public DynamicProgrammingTsp()
+        {
         }
 
         // Start the algorithm
-        public void Start()
+        public override void Start()
         {
             var size = _graph.GetSize();
 
@@ -86,7 +85,7 @@ namespace TSP.Algorithms
                 minCost = Math.Min(currCost, minCost);
             }
 
-            Console.WriteLine("Min cost found is: {0}.", minCost);
+            if (!IsBenchmark) Console.WriteLine("Min cost found is: {0}.", minCost);
 
             // Display the path
             var prevIndex = _startVertex;
@@ -117,11 +116,11 @@ namespace TSP.Algorithms
             path[0] = _startVertex;
             path[size] = _startVertex;
 
-            Console.WriteLine("Path:");
+            if (!IsBenchmark) Console.WriteLine("Path:");
 
-            path.ToList().ForEach(i => { Console.Write(i + " "); });
+            if (!IsBenchmark) path.ToList().ForEach(i => { Console.Write(i + " "); });
 
-            Console.WriteLine("\nFinished DP Traveling Salesman algorithm.");
+            if (!IsBenchmark) Console.WriteLine("\nFinished DP Traveling Salesman algorithm.");
         }
 
         // Check whether given element has its corresponding bit switched in binary representation of second argument (One-hot representation).

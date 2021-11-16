@@ -14,8 +14,14 @@ namespace TSP.Algorithms.BranchNBound
         {
         }
 
-        public void Start()
+        public BranchNBoundDfs()
         {
+        }
+
+        public override void Start()
+        {
+            _upperBound = int.MaxValue;
+            _minNode = null;
             var path = Solve();
             if (path == null)
             {
@@ -25,21 +31,21 @@ namespace TSP.Algorithms.BranchNBound
 
             var cost = 0;
 
-            Console.Write(StartVertex + " ");
+            if (!IsBenchmark) Console.Write(_startVertex + " ");
             path.ForEach(tuple =>
             {
-                Console.Write(tuple.Item2 + " ");
-                cost += Graph.GetWeight(tuple.Item1, tuple.Item2);
+                if (!IsBenchmark) Console.Write(tuple.Item2 + " ");
+                cost += _graph.GetWeight(tuple.Item1, tuple.Item2);
             });
-            Console.WriteLine();
+            if (!IsBenchmark) Console.WriteLine();
 
-            Console.WriteLine("Path cost: {0}", cost);
+            if (!IsBenchmark) Console.WriteLine("Path cost: {0}", cost);
         }
 
         private void Dfs(BranchNBoundNode v)
         {
             if (v.Cost > _upperBound) return;
-            if (v.Level == Graph.GetSize() - 1)
+            if (v.Level == _graph.GetSize() - 1)
             {
                 //Reached leaf node, update upper bound.
                 v.Path.Add((v.Vertex, 0));
@@ -53,9 +59,9 @@ namespace TSP.Algorithms.BranchNBound
 
         private List<(int, int)> Solve()
         {
-            var (cost, reduced) = MinimizeMatrix(Graph.GetGraph());
+            var (cost, reduced) = MinimizeMatrix(_graph.GetGraph());
 
-            var root = new BranchNBoundNode(reduced, cost, StartVertex, 0, new List<(int, int)>(), null);
+            var root = new BranchNBoundNode(reduced, cost, _startVertex, 0, new List<(int, int)>(), null);
 
             Dfs(root);
             return _minNode.Path;

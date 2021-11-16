@@ -1,4 +1,7 @@
-﻿namespace TSP
+﻿using TSP.Algorithms.BranchNBound;
+using TSP.Utils;
+
+namespace TSP
 {
     internal class Program
     {
@@ -22,8 +25,10 @@
             // tsp.Start();
 
 
-            new Menu();
+            // new Menu();
 
+            var benchmart = new Benchmark(5, 25, 1, 1.0f, new BranchNBoundDfs(), 100);
+            benchmart.Start();
             // int[,] graph =
             //     {{-1, 20, 30, 10, 11}, {15, -1, 16, 4, 2}, {3, 5, -1, 2, 4}, {19, 6, 18, -1, 3}, {16, 4, 7, 16, -1}};
             // Graph graphO = new Graph(5, graph);

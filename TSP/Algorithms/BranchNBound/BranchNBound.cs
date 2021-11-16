@@ -3,15 +3,14 @@ using TSP.Utils;
 
 namespace TSP.Algorithms.BranchNBound
 {
-    public abstract class BranchNBound
+    public abstract class BranchNBound : TspAlgorithm
     {
-        protected readonly Graph Graph;
-        protected readonly int StartVertex;
-
-        protected BranchNBound(Graph graph, int startVertex)
+        protected BranchNBound(Graph graph, int startVertex) : base(graph, startVertex)
         {
-            Graph = graph;
-            StartVertex = startVertex;
+        }
+
+        protected BranchNBound()
+        {
         }
 
         protected static (int, int[,]) MinimizeMatrix(int[,] graph)
@@ -21,12 +20,11 @@ namespace TSP.Algorithms.BranchNBound
             return (minR + minC, minGraphC);
         }
 
-
         protected List<BranchNBoundNode> FindPossibleChildren(BranchNBoundNode parent)
         {
             var children = new List<BranchNBoundNode>();
 
-            for (var i = 0; i < Graph.GetSize(); i++)
+            for (var i = 0; i < _graph.GetSize(); i++)
             {
                 if (parent.Reduced[parent.Vertex, i] == -1) continue;
 

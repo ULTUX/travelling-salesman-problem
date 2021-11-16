@@ -7,22 +7,18 @@ namespace TSP.Algorithms
      * Simple brute force algorithm for finding best path in Travelling Salesman Problem.
      * Algorithm uses next permutation algorithm for finding every possible permutation of graph nodes.
      */
-    internal class BruteForce
+    internal class BruteForce : TspAlgorithm
     {
-        private readonly Graph _graph;
-        private readonly int _startVertex;
         private int[] _permutation;
 
-        public BruteForce(Graph graph, int startVertex)
+        public BruteForce(Graph graph, int startVertex) : base(graph, startVertex)
         {
-            _graph = graph;
-            _startVertex = startVertex;
         }
 
         /**
          * Start the algorithm.
          */
-        public void Start()
+        public override void Start()
         {
             var minPath = int.MaxValue;
             var minPermutation = new int[_graph.GetSize() - 1];
@@ -58,9 +54,11 @@ namespace TSP.Algorithms
 
             //Finished algorithm, print results
 
-            Console.Write("Found min path. Path: " + _startVertex + " ");
-            foreach (var t in minPermutation) Console.Write(t + " ");
-            Console.WriteLine("\nPath length: " + minPath + ".");
+            if (!IsBenchmark) Console.Write("Found min path. Path: " + _startVertex + " ");
+            if (!IsBenchmark)
+                foreach (var t in minPermutation)
+                    Console.Write(t + " ");
+            if (!IsBenchmark) Console.WriteLine("\nPath length: " + minPath + ".");
         }
 
         /**
