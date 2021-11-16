@@ -52,6 +52,8 @@ namespace TSP.Utils
             }
 
             _fStream.Close();
+
+            Console.WriteLine("File written to: {0}", _fStream.Name);
         }
     }
 }

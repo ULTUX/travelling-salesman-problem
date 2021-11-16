@@ -15,6 +15,10 @@ namespace TSP.Algorithms
         {
         }
 
+        public BruteForce()
+        {
+        }
+
         /**
          * Start the algorithm.
          */

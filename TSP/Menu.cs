@@ -21,10 +21,10 @@ namespace TSP
             while (!exit)
             {
                 Console.WriteLine("Co chcesz zrobić?");
-                Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf");
+                Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf\n\t3. Przeprowadzić testy");
                 if (_currentGraph != null)
-                    Console.WriteLine("\t3. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
-                                      "4. Rozwiazać problem komiwojażera algorytmem DP\n\t5.Rozwiązać proglem komiwojadżera algorytmem B&B (min)\n\t6. Rozwiązać proglem komiwojadżera algorytmem B&B (DFS)");
+                    Console.WriteLine("\t4. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
+                                      "5. Rozwiazać problem komiwojażera algorytmem DP\n\t6. Rozwiązać proglem komiwojadżera algorytmem B&B (min)\n\t7. Rozwiązać proglem komiwojadżera algorytmem B&B (DFS)");
                 Console.WriteLine("\t0. Wyłączyć program");
                 var key = Console.ReadKey();
                 Console.WriteLine();
@@ -37,6 +37,9 @@ namespace TSP
                     case ConsoleKey.D2:
                         GenerateRandomGraph();
                         break;
+                    case ConsoleKey.D3:
+                        InitBenchmark();
+                        break;
                     case ConsoleKey.D0:
                         exit = true;
                         break;
@@ -45,16 +48,16 @@ namespace TSP
                         if (_currentGraph != null)
                             switch (key.Key)
                             {
-                                case ConsoleKey.D3:
+                                case ConsoleKey.D4:
                                     RunBruteForceAlg();
                                     break;
-                                case ConsoleKey.D4:
+                                case ConsoleKey.D5:
                                     RunDpAlg();
                                     break;
-                                case ConsoleKey.D5:
+                                case ConsoleKey.D6:
                                     RunBnbMinAlg();
                                     break;
-                                case ConsoleKey.D6:
+                                case ConsoleKey.D7:
                                     RunBnbDfsAlg();
                                     break;
                                 default:
@@ -71,6 +74,62 @@ namespace TSP
 
             Console.WriteLine("Zatrzymywanie programu...");
             Thread.Sleep(500);
+        }
+
+        private void InitBenchmark()
+        {
+            Console.Write("Wybrano przeprowadzenie testów.\nPodaj wielkość początkową: ");
+            try
+            {
+                var data = Console.ReadLine();
+                var startVal = ParseFromString(data);
+                Console.Write("Podaj wielkość końcową: ");
+                data = Console.ReadLine();
+                var endVal = ParseFromString(data);
+                Console.Write("Podaj krok: ");
+                data = Console.ReadLine();
+                var step = ParseFromString(data);
+                Console.Write("Podaj ilość powtórzeń: ");
+                data = Console.ReadLine();
+                var repeats = ParseFromString(data);
+                Console.Write("Podaj mnożnik (domyślnie 1.0): ");
+                data = Console.ReadLine();
+                float mult;
+                if (data == "") mult = 1.0f;
+                else mult = ParseFromString(data);
+
+                Console.WriteLine(
+                    "Wybierz algorytm:\n\t1. Przegląd zupełny\n\t2. Programowanie dynamiczne\n\t3. Branch and Bound metodą minimalną" +
+                    "\n\t4. Branch and Bound przy użyciu DFS");
+                Console.Write("Wybór: ");
+                var key = Console.ReadKey().Key;
+                TspAlgorithm algorithm;
+                switch (key)
+                {
+                    case ConsoleKey.D1:
+                        algorithm = new BruteForce();
+                        break;
+                    case ConsoleKey.D2:
+                        algorithm = new DynamicProgrammingTsp();
+                        break;
+                    case ConsoleKey.D3:
+                        algorithm = new BranchNBoundMin();
+                        break;
+                    case ConsoleKey.D4:
+                        algorithm = new BranchNBoundDfs();
+                        break;
+                    default:
+                        throw new Exception("Algorithm not specified.");
+                }
+
+                Console.WriteLine("Uruchamianie algorytmu...");
+                new Benchmark(startVal, endVal, step, mult, algorithm, repeats).Start();
+                Console.WriteLine("Testy zostały przeprowadzone, plik .csv został zapisany.");
+            }
+            catch
+            {
+                Console.WriteLine("Nieprawidłowe dane.");
+            }
         }
 
         private void RunBnbDfsAlg()
