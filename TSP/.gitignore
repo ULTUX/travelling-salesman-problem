@@ -287,6 +287,8 @@ csx/
 ecf/
 rcf/
 
+.DS_Store
+
 # Windows Store app package directories and files
 AppPackages/
 BundleArtifacts/
