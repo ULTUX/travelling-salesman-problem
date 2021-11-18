@@ -5,9 +5,6 @@ using TSP.Utils;
 
 namespace TSP.Algorithms
 {
-    /**
-     * Algorithm based on: https://www.youtube.com/watch?v=cY4HiiFHO1o
-     */
     public class DynamicProgrammingTsp : TspAlgorithm
     {
         public DynamicProgrammingTsp(Graph graph, int startVertex) : base(graph, startVertex)

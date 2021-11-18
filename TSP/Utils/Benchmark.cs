@@ -60,15 +60,18 @@ namespace TSP.Utils
                 Console.WriteLine("{0:0.00}% Testing for size: {1}...", (float) i / _iterationCount * 100, _currSize);
                 //Start benchmark:
                 double avg = 0;
-                for (var j = 0; j < _repeats; j++)
+                for (var j = 0; j < _repeats * 1.5; j++)
                 {
-                    Console.WriteLine("\t{0:0.00}% total completed, current size: {1}.",
-                        (float) (j + i * _repeats) / (_repeats * _iterationCount) * 100, _currSize);
+                    _timer.Reset();
+                    if (j >= 0.5 * _repeats)
+                        Console.WriteLine("\t{0:0.00}% total completed, current size: {1}.",
+                            (float) (j - 0.5 * _repeats + i * _repeats) / (_repeats * _iterationCount) * 100,
+                            _currSize);
                     GenerateRandomGraphData(_currSize);
                     _timer.Start();
                     _algorithm.Start();
                     _timer.Stop();
-                    avg += _timer.Elapsed.TotalMilliseconds;
+                    if (j >= 0.5 * _repeats) avg += _timer.Elapsed.TotalMilliseconds;
                 }
 
                 avg /= _repeats;
