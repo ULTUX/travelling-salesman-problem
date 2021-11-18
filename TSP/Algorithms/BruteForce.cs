@@ -99,7 +99,6 @@ namespace TSP.Algorithms
                 (_permutation[lastIncreasing], _permutation[successor]);
 
             //Reverse order of decreasing elements (revert back to first permutation)
-            //TODO: Verify whether this function works properly
             var l = 1;
             for (var i = _permutation.Length - 1;
                 i > (_permutation.Length - 1 - lastIncreasing) / 2 + lastIncreasing;
