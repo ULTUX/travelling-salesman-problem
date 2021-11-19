@@ -62,7 +62,7 @@ namespace TSP.Algorithms
             if (!IsBenchmark)
                 foreach (var t in minPermutation)
                     Console.Write(t + " ");
-            Console.Write(_startVertex);
+            if (!IsBenchmark) Console.Write(_startVertex);
             if (!IsBenchmark) Console.WriteLine("\nPath length: " + minPath + ".");
         }
 
