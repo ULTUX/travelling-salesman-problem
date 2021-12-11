@@ -27,9 +27,8 @@ namespace TSP.Algorithms
         public override void Start()
         {
             var currentSol = GetFirstSolution();
-            // currentSol = GetNewRandomSolution(currentSol);
             tabuListSize = 20;
-            bestSolutionCost = _graph.GetCost(currentSol, _startVertex);
+            bestSolutionCost = _graph.GetCost(currentSol);
             bestSolution = new int[currentSol.Length];
             Array.Copy(currentSol, bestSolution, currentSol.Length);
             var swapFunc = new Action<int[], int, int>(SwapToNeighbour);
@@ -43,7 +42,7 @@ namespace TSP.Algorithms
                 var hasChanged = FindNextNeighbour(currentSol, swapFunc);
                 if (hasChanged)
                 {
-                    var currSolCost = _graph.GetCost(currentSol, _startVertex);
+                    var currSolCost = _graph.GetCost(currentSol);
 
                     if (currSolCost < bestSolutionCost)
                     {
@@ -75,7 +74,7 @@ namespace TSP.Algorithms
             }
 
             Console.WriteLine("Solution cost: " + bestSolutionCost);
-            printSolution(bestSolution);
+            PrintSolution(bestSolution);
         }
 
         //It is Tabu search algorithm for TSP problem. Write a function that finds best neighbor of the current solution and returns it.
@@ -84,7 +83,6 @@ namespace TSP.Algorithms
         {
             var bestLocalCost = int.MaxValue;
             var bestLocalSolution = new int[solution.Length];
-            ;
             var currSol = new int[solution.Length];
             Array.Copy(solution, currSol, solution.Length);
             var bestSolution = bestSolutionCost;
@@ -94,11 +92,11 @@ namespace TSP.Algorithms
 
             var solutionFound = false;
 
-            for (var i = 1; i < _graph.GetSize() - 1; i++)
+            for (var i = 0; i < _graph.GetSize() - 1; i++)
             for (var j = i + 1; j < _graph.GetSize(); j++)
             {
                 swapFunction(currSol, i, j);
-                var currCost = _graph.GetCost(currSol, _startVertex);
+                var currCost = _graph.GetCost(currSol);
 
                 if (bestLocalCost - currCost > minVal)
                     if (!IsPresentInTabu(i, j) || currCost < bestSolution)
@@ -131,11 +129,11 @@ namespace TSP.Algorithms
             SwapToNeighbour(newSolution, i, j);
             var minNeighbour = new int[currSol.Length];
             Array.Copy(newSolution, minNeighbour, minNeighbour.Length);
-            var minNeighbourCost = _graph.GetCost(minNeighbour, _startVertex);
+            var minNeighbourCost = _graph.GetCost(minNeighbour);
 
             Array.Copy(currSol, secondSol, currSol.Length);
             SwapToNeighbour2(secondSol, i, j);
-            return _graph.GetCost(secondSol, _startVertex) < minNeighbourCost ? secondSol : minNeighbour;
+            return _graph.GetCost(secondSol) < minNeighbourCost ? secondSol : minNeighbour;
         }
 
         private void SwapToNeighbour(int[] solution, int i, int j)
@@ -178,7 +176,7 @@ namespace TSP.Algorithms
             return true;
         }
 
-        private void printSolution(IEnumerable<int> solution)
+        private void PrintSolution(IEnumerable<int> solution)
         {
             var prev = 0;
             foreach (var i1 in solution) Console.Write("{0} ", i1);
@@ -205,20 +203,30 @@ namespace TSP.Algorithms
 
         private int[] GetFirstSolution()
         {
-            var solution = new Collection<int>();
+            var solution = new List<int>();
+            var searchSpace = new List<int>();
+
+            for (int i = 0; i < _graph.GetSize(); i++)
+            {
+                searchSpace.Add(i);
+            }
+            
             //var currDist = 0;
-            var prevNode = 0;
             var graph = _graph.GetGraph();
-            solution.Add(0);
-            while (solution.Count != _graph.GetSize())
+            int startVertex = random.Next(0, _graph.GetSize());
+            solution.Add(startVertex);
+            searchSpace.Remove(startVertex);
+            var prevNode = startVertex;
+            while (searchSpace.Count != 0)
             {
                 var min = (idx: 0, val: int.MaxValue);
-                for (var i = 1; i < _graph.GetSize(); i++)
-                    if (!solution.Contains(i) && graph[prevNode, i] < min.val && graph[prevNode, i] != 0)
-                        min = (i, graph[prevNode, i]);
+                for (var i = 0; i < searchSpace.Count; i++)
+                    if (graph[prevNode, searchSpace[i]] < min.val)
+                        min = (searchSpace[i], graph[prevNode, searchSpace[i]]);
                 if (min.val == int.MaxValue) continue;
                 solution.Add(min.idx);
                 prevNode = min.idx;
+                searchSpace.Remove(prevNode);
             }
 
             return solution.ToArray();
@@ -227,17 +235,13 @@ namespace TSP.Algorithms
         private int[] GetNewRandomSolution(int[] currSolution)
         {
             var bestRandomSolution = new int[currSolution.Length];
-            bestRandomSolution = currSolution.Skip(1).ToArray();
-            bestRandomSolution = bestRandomSolution.OrderBy(i => random.Next()).ToArray();
-            bestRandomSolution = bestRandomSolution.Prepend(0).ToArray();
-            var bestRandomSolutionCost = _graph.GetCost(bestRandomSolution, _startVertex);
+            bestRandomSolution = bestRandomSolution.OrderBy(item => random.Next()).ToArray();
+            var bestRandomSolutionCost = _graph.GetCost(bestRandomSolution);
 
-            for (var i = 0; i < 190; i++)
+            for (var i = 0; i < 19; i++)
             {
-                currSolution = currSolution.Skip(1).ToArray();
-                currSolution = currSolution.OrderBy(i => random.Next()).ToArray();
-                currSolution = currSolution.Prepend(0).ToArray();
-                var currSolCost = _graph.GetCost(currSolution, _startVertex);
+                currSolution = currSolution.OrderBy(item => random.Next()).ToArray();
+                var currSolCost = _graph.GetCost(currSolution);
                 if (currSolCost < bestRandomSolutionCost)
                 {
                     Array.Copy(currSolution, bestRandomSolution, currSolution.Length);
