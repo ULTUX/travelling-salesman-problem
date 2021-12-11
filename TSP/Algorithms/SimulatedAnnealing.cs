@@ -10,8 +10,8 @@ namespace TSP.Algorithms
     {
         private int size;
         
-        private float temp;
-        private float tempModifier;
+        private double temp;
+        private double tempModifier;
         private float initialTemp;
         private float endingTemp;
 
@@ -44,11 +44,12 @@ namespace TSP.Algorithms
 
             return bestRandomSolution;
         }
+        
         public override void Start()
         {
             size = _graph.GetSize();
-            tempModifier = 0.999995f;
-            endingTemp = 0.000000000000001f;
+            tempModifier = 0.99999;
+            endingTemp = 0.000001f;
             maxIterations = 100000000;
             currentIteration = 0;
             _currSolution = GetFirstSolution();
@@ -65,7 +66,7 @@ namespace TSP.Algorithms
                 var candidate = _currSolution.Clone() as int[];
                 var firstSwapPoint = _randGen.Next(2, size);
                 var secondSwapPoint = _randGen.Next(0, size - firstSwapPoint);
-                SwapToNeighbour2(candidate, firstSwapPoint, secondSwapPoint);
+                SwapToNeighbour(candidate, firstSwapPoint, secondSwapPoint);
                 SetNewSolution(candidate);
 
                 if (_bestFitness != startFitness)
@@ -77,6 +78,9 @@ namespace TSP.Algorithms
                 temp *= tempModifier;
             }
             
+            if (maxIterations == currentIteration) Console.WriteLine("Max iterations reached");
+            else Console.WriteLine("Goal temperature reached");
+            
             Console.WriteLine("Best solution found: {0}, solution: ", _bestFitness);
             PrintSolution(bestSolution);
         }
@@ -86,6 +90,11 @@ namespace TSP.Algorithms
             var prev = 0;
             foreach (var i1 in solution) Console.Write("{0} ", i1);
             Console.WriteLine();
+        }
+        
+        private void SwapToNeighbour(int[] solution, int i, int j)
+        {
+            (solution[i], solution[j]) = (solution[j], solution[i]);
         }
         
         private void SwapToNeighbour2(int[] solution, int i, int j)
