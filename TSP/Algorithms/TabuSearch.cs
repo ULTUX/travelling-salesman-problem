@@ -28,19 +28,19 @@ namespace TSP.Algorithms
         {
             var currentSol = GetFirstSolution();
             // currentSol = GetNewRandomSolution(currentSol);
-            tabuListSize = currentSol.Length * 10;
+            tabuListSize = 10;
             bestSolutionCost = _graph.GetCost(currentSol, _startVertex);
             bestSolution = new int[currentSol.Length];
             Array.Copy(currentSol, bestSolution, currentSol.Length);
-
+            var swapFunc = new Action<int[], int, int>(SwapToNeighbour);
 
             var i = 0;
             Console.WriteLine("Current cost: {0}", bestSolutionCost);
-            const int NUM_ITERATIONS = 1000;
+            const int NUM_ITERATIONS = 100000;
             var numIterationsNotChanged = 0;
             while (i < NUM_ITERATIONS)
             {
-                var hasChanged = FindNextNeighbour(currentSol);
+                var hasChanged = FindNextNeighbour(currentSol, swapFunc);
                 if (!hasChanged)
                 {
                     numIterationsNotChanged++;
@@ -57,11 +57,16 @@ namespace TSP.Algorithms
                     }
                 }
 
-                // if (numIterationsNotChanged == _graph.GetSize())
-                // {
-                //     currentSol = GetNewRandomSolution(currentSol);
-                //     numIterationsNotChanged = 0;
-                // }
+                if (numIterationsNotChanged == _graph.GetSize())
+                {
+                    // currentSol = GetNewRandomSolution(currentSol);
+                    numIterationsNotChanged = 0;
+
+                    if (swapFunc == SwapToNeighbour)
+                        swapFunc = SwapToNeighbour2;
+                    else swapFunc = SwapToNeighbour;
+                }
+
                 i++;
             }
 
@@ -71,7 +76,7 @@ namespace TSP.Algorithms
 
         //It is Tabu search algorithm for TSP problem. Write a function that finds best neighbor of the current solution and returns it.
         //The function should return new array that is a neighbor of the current solution. The array should have two elements swapped.
-        private bool FindNextNeighbour(int[] solution)
+        private bool FindNextNeighbour(int[] solution, Action<int[], int, int> swapFunction)
         {
             var bestLocalCost = _graph.GetCost(solution, _startVertex);
             int[] bestLocalSolution = null;
@@ -85,7 +90,7 @@ namespace TSP.Algorithms
             for (var i = 1; i < _graph.GetSize() - 1; i++)
             for (var j = i + 1; j < _graph.GetSize(); j++)
             {
-                SwapToNeighbour(currSol, i, j);
+                swapFunction(currSol, i, j);
                 var currCost = _graph.GetCost(currSol, _startVertex);
 
                 if (bestLocalCost - currCost > minVal)
@@ -185,6 +190,10 @@ namespace TSP.Algorithms
 
         private bool IsPresentInTabu(int val1, int val2)
         {
+            for (var i = 0; i < tabuList.Count; i++)
+                if (tabuList[i].Item1 == val1 || tabuList[i].Item1 == val2 || tabuList[i].Item2 == val1 ||
+                    tabuList[i].Item2 == val2)
+                    return true;
             return tabuList.Contains((val1, val2)) || tabuList.Contains((val2, val1));
         }
 
