@@ -28,7 +28,7 @@ namespace TSP.Algorithms
         {
             var currentSol = GetFirstSolution();
             // currentSol = GetNewRandomSolution(currentSol);
-            tabuListSize = 10;
+            tabuListSize = (int) (0.5 * _graph.GetSize());
             bestSolutionCost = _graph.GetCost(currentSol, _startVertex);
             bestSolution = new int[currentSol.Length];
             Array.Copy(currentSol, bestSolution, currentSol.Length);
@@ -36,7 +36,7 @@ namespace TSP.Algorithms
 
             var i = 0;
             Console.WriteLine("Current cost: {0}", bestSolutionCost);
-            const int NUM_ITERATIONS = 100000;
+            const int NUM_ITERATIONS = 10000;
             var numIterationsNotChanged = 0;
             while (i < NUM_ITERATIONS)
             {
@@ -61,7 +61,6 @@ namespace TSP.Algorithms
                 {
                     // currentSol = GetNewRandomSolution(currentSol);
                     numIterationsNotChanged = 0;
-
                     if (swapFunc == SwapToNeighbour)
                         swapFunc = SwapToNeighbour2;
                     else swapFunc = SwapToNeighbour;
@@ -161,14 +160,12 @@ namespace TSP.Algorithms
 
         private bool CheckIfPathIsValid(int[] solution)
         {
-            // for (int i = 1; i < solution.Length; i++)
-            // {
-            //     if (_graph.GetWeight(i - 1, i) == 0)
-            //     {
-            //         Console.WriteLine("NOT VALID PATH FOUND!");
-            //         return false;
-            //     }
-            // }
+            for (var i = 1; i < solution.Length; i++)
+                if (_graph.GetWeight(i - 1, i) == 0)
+                {
+                    Console.WriteLine("NOT VALID PATH FOUND!");
+                    return false;
+                }
 
             return true;
         }

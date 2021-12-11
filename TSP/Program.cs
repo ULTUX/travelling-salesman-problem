@@ -9,7 +9,7 @@ namespace TSP
         {
             // new Menu();
 
-            new TabuSearch(new ATSPReader("ftv170.atsp").ReadFile(), 0).Start();
+            new TabuSearch(new ATSPReader("ftv47.atsp").ReadFile(), 0).Start();
             // new BranchNBoundMin(new ATSPReader("rbg403.atsp").ReadFile(), 0).Start();
         }
     }
