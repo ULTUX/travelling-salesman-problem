@@ -28,7 +28,7 @@ namespace TSP.Algorithms
         {
             var currentSol = GetFirstSolution();
             // currentSol = GetNewRandomSolution(currentSol);
-            tabuListSize = (int) (0.5 * _graph.GetSize());
+            tabuListSize = 20;
             bestSolutionCost = _graph.GetCost(currentSol, _startVertex);
             bestSolution = new int[currentSol.Length];
             Array.Copy(currentSol, bestSolution, currentSol.Length);
@@ -36,16 +36,12 @@ namespace TSP.Algorithms
 
             var i = 0;
             Console.WriteLine("Current cost: {0}", bestSolutionCost);
-            const int NUM_ITERATIONS = 10000;
+            const int NUM_ITERATIONS = 100000;
             var numIterationsNotChanged = 0;
             while (i < NUM_ITERATIONS)
             {
                 var hasChanged = FindNextNeighbour(currentSol, swapFunc);
-                if (!hasChanged)
-                {
-                    numIterationsNotChanged++;
-                }
-                else
+                if (hasChanged)
                 {
                     var currSolCost = _graph.GetCost(currentSol, _startVertex);
 
@@ -55,11 +51,20 @@ namespace TSP.Algorithms
                         Array.Copy(currentSol, bestSolution, currentSol.Length);
                         Console.WriteLine("Found new best solution: " + bestSolutionCost);
                     }
+                    else
+                    {
+                        numIterationsNotChanged++;
+                    }
                 }
 
-                if (numIterationsNotChanged == _graph.GetSize())
+                if (numIterationsNotChanged == 2 * _graph.GetSize())
                 {
-                    // currentSol = GetNewRandomSolution(currentSol);
+                    currentSol = GetNewRandomSolution(currentSol);
+                    numIterationsNotChanged = 0;
+                }
+
+                else if (numIterationsNotChanged == _graph.GetSize())
+                {
                     numIterationsNotChanged = 0;
                     if (swapFunc == SwapToNeighbour)
                         swapFunc = SwapToNeighbour2;
@@ -77,14 +82,17 @@ namespace TSP.Algorithms
         //The function should return new array that is a neighbor of the current solution. The array should have two elements swapped.
         private bool FindNextNeighbour(int[] solution, Action<int[], int, int> swapFunction)
         {
-            var bestLocalCost = _graph.GetCost(solution, _startVertex);
-            int[] bestLocalSolution = null;
+            var bestLocalCost = int.MaxValue;
+            var bestLocalSolution = new int[solution.Length];
+            ;
             var currSol = new int[solution.Length];
             Array.Copy(solution, currSol, solution.Length);
             var bestSolution = bestSolutionCost;
             var minVal = 0;
 
             var tabuIndexes = (0, 0);
+
+            var solutionFound = false;
 
             for (var i = 1; i < _graph.GetSize() - 1; i++)
             for (var j = i + 1; j < _graph.GetSize(); j++)
@@ -95,18 +103,18 @@ namespace TSP.Algorithms
                 if (bestLocalCost - currCost > minVal)
                     if (!IsPresentInTabu(i, j) || currCost < bestSolution)
                     {
-                        minVal = currCost;
+                        minVal = bestLocalCost - currCost;
                         bestSolution = currCost;
                         bestLocalCost = currCost;
-                        bestLocalSolution = new int[currSol.Length];
                         tabuIndexes = (i, j);
                         Array.Copy(currSol, bestLocalSolution, currSol.Length);
+                        solutionFound = true;
                     }
 
                 SwapToNeighbour(currSol, i, j);
             }
 
-            if (bestLocalSolution == null) return false;
+            if (!solutionFound) return false;
             pushToTabu(tabuIndexes.Item1, tabuIndexes.Item2);
             Array.Copy(bestLocalSolution, solution, bestLocalSolution.Length);
             return true;
