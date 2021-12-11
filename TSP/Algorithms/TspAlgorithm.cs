@@ -25,6 +25,7 @@ namespace TSP.Algorithms
             set => _startVertex = value;
         }
 
+
         public Graph Graph
         {
             get => _graph;

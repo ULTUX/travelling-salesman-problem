@@ -18,6 +18,15 @@ namespace TSP.Utils
             _graph = graph;
         }
 
+        public int GetCost(int[] solution, int startVertex)
+        {
+            var cost = 0;
+            for (var i = 0; i < solution.Length - 1; i++) cost += GetWeight(solution[i], solution[i + 1]);
+            cost += GetWeight(solution[^1], startVertex);
+            // cost += GetWeight(startVertex, solution[0]);
+            return cost;
+        }
+
         public int[,] GetGraph()
         {
             return _graph;
