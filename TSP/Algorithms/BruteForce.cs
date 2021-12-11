@@ -58,11 +58,12 @@ namespace TSP.Algorithms
 
             //Finished algorithm, print results
 
-            if (!IsBenchmark) Console.Write("Found min path. Path: " + _startVertex + " ");
-            if (!IsBenchmark)
+            if (IsBenchmark) return;
+            Console.Write("Found min path. Path: " + _startVertex + " ");
                 foreach (var t in minPermutation)
                     Console.Write(t + " ");
-            if (!IsBenchmark) Console.WriteLine("\nPath length: " + minPath + ".");
+                Console.Write(_startVertex);
+                Console.WriteLine("\nPath length: " + minPath + ".");
         }
 
         /**

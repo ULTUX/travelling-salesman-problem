@@ -135,69 +135,29 @@ namespace TSP
         private void RunBnbDfsAlg()
         {
             Console.WriteLine("Uruchamianie algorytmu...");
-            Console.Write("Wierzchołek początkowy: ");
-            var readVal = Console.ReadLine();
-            try
-            {
-                var startVertex = ParseFromString(readVal);
-                var bNbAlg = new BranchNBoundDfs(_currentGraph, startVertex);
-                bNbAlg.Start();
-            }
-            catch
-            {
-                Console.WriteLine("Nieprawidłowe dane.");
-            }
-        }
+            var bNbAlg = new BranchNBoundDfs(_currentGraph, 0);
+            bNbAlg.Start();
+    }
 
         private void RunBnbMinAlg()
         {
             Console.WriteLine("Uruchamianie algorytmu...");
-            Console.Write("Wierzchołek początkowy: ");
-            var readVal = Console.ReadLine();
-            try
-            {
-                var startVertex = ParseFromString(readVal);
-                var bNbAlg = new BranchNBoundMin(_currentGraph, startVertex);
-                bNbAlg.Start();
+            var bNbAlg = new BranchNBoundMin(_currentGraph, 0);
+            bNbAlg.Start();
             }
-            catch
-            {
-                Console.WriteLine("Nieprawidłowe dane.");
-            }
-        }
 
         private void RunDpAlg()
         {
             Console.WriteLine("Uruchamianie algorytmu...");
-            Console.Write("Wierzchołek początkowy: ");
-            var readVal = Console.ReadLine();
-            try
-            {
-                var startVertex = ParseFromString(readVal);
-                var dynamicProgrammingTsp = new DynamicProgrammingTsp(_currentGraph, startVertex);
-                dynamicProgrammingTsp.Start();
-            }
-            catch
-            {
-                Console.WriteLine("Nieprawidłowe dane.");
-            }
+            var dynamicProgrammingTsp = new DynamicProgrammingTsp(_currentGraph, 0);
+            dynamicProgrammingTsp.Start();
         }
 
         private void RunBruteForceAlg()
         {
             Console.WriteLine("Uruchamianie algorytmu...");
-            Console.Write("Wierzchołek początkowy: ");
-            var readVal = Console.ReadLine();
-            try
-            {
-                var startVertex = ParseFromString(readVal);
-                var bfAlg = new BruteForce(_currentGraph, startVertex);
-                bfAlg.Start();
-            }
-            catch
-            {
-                Console.WriteLine("Nieprawidłowe dane.");
-            }
+            var bfAlg = new BruteForce(_currentGraph, 0);
+            bfAlg.Start();
         }
 
         private void GenerateRandomGraph()
