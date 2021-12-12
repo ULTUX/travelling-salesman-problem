@@ -1,95 +1,87 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
+using System.Diagnostics;
 using TSP.Utils;
 
 namespace TSP.Algorithms
 {
     public class SimulatedAnnealing: TspAlgorithm
     {
-        private int size;
+        private int _size;
         
-        private double temp;
-        private double tempModifier;
-        private float initialTemp;
-        private float endingTemp;
-
-        private int maxIterations;
-        private int currentIteration;
+        private double _temp;
+        private double? _tempModifier;
+        private float _initialTemp;
+        private int _currentIteration;
         
-        private int[] bestSolution;
-        private float _bestFitness = int.MaxValue;
+        private int[] _bestSolution;
+        private int _bestFitness = int.MaxValue;
 
         private int[] _currSolution;
-        private float _currentFitness;
+        private int _currentFitness;
 
-        private readonly Random _randGen = new Random();
-        private int[] GetNewRandomSolution(int[] currSolution)
+        private readonly Random _randGen = new();
+        private readonly int _timeConstraint;
+
+        private readonly Action _reduceTemperature;
+
+        public SimulatedAnnealing(Graph graph, int totalMillis, AnnealMethod method, float? tempModifier) : base(graph, 0)
         {
-            var bestRandomSolution = new int[currSolution.Length];
-            bestRandomSolution = bestRandomSolution.OrderBy(item => _randGen.Next()).ToArray();
-            var bestRandomSolutionCost = _graph.GetCost(bestRandomSolution);
-
-            for (var i = 0; i < 19; i++)
+            _timeConstraint = totalMillis;
+            _tempModifier = tempModifier;
+            _reduceTemperature = method switch
             {
-                currSolution = currSolution.OrderBy(item => _randGen.Next()).ToArray();
-                var currSolCost = _graph.GetCost(currSolution);
-                if (currSolCost < bestRandomSolutionCost)
-                {
-                    Array.Copy(currSolution, bestRandomSolution, currSolution.Length);
-                    bestRandomSolutionCost = currSolCost;
-                }
-            }
-
-            return bestRandomSolution;
+                AnnealMethod.Linear => DecreaseTempLinearly,
+                AnnealMethod.Geometric => DecreaseTempGeometrically,
+                AnnealMethod.SlowDecrease => DecreaseTempSlowDecrease,
+                _ => DecreaseTempGeometrically
+            };
         }
-        
+
+
         public override void Start()
         {
-            size = _graph.GetSize();
-            tempModifier = 0.99999;
-            endingTemp = 0.000001f;
-            maxIterations = 100000000;
-            currentIteration = 0;
+            //Init fields, could not do that in constructor bcs one object of this class can be ran multiple times
+            //with different input values (Benchmarking purposes).
+            _size = _graph.GetSize();
+            _tempModifier ??= 0.999999;
+            _currentIteration = 0;
             _currSolution = GetFirstSolution();
-            // _currSolution = GetNewRandomSolution(_currSolution);
             _currentFitness = _graph.GetCost(_currSolution);
-            bestSolution = _currSolution.Clone() as int[];
-            temp = 1000000;
+            _bestSolution = _currSolution.Clone() as int[];
+            _temp = 10000000;
             
             
             Console.WriteLine("Starting anneal...");
-            while (temp > endingTemp && currentIteration < maxIterations)
-            {
-                float startFitness = _bestFitness;
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            
+            while (stopWatch.Elapsed.TotalMilliseconds < _timeConstraint)
+            {            
+                var startFitness = _bestFitness;
                 var candidate = _currSolution.Clone() as int[];
-                var firstSwapPoint = _randGen.Next(2, size);
-                var secondSwapPoint = _randGen.Next(0, size - firstSwapPoint);
+                var firstSwapPoint = _randGen.Next(2, _size);
+                var secondSwapPoint = _randGen.Next(0, _size - firstSwapPoint);
                 SwapToNeighbour(candidate, firstSwapPoint, secondSwapPoint);
                 SetNewSolution(candidate);
 
-                if (_bestFitness != startFitness)
+                if (_bestFitness < startFitness)
                 {
                     Console.WriteLine("Changed solution to: {0}", _bestFitness);
                 }
                 
-                currentIteration++;
-                temp *= tempModifier;
+                _currentIteration++;
+                _reduceTemperature();   //Reduce temperature with selected annealing method.
             }
-            
-            if (maxIterations == currentIteration) Console.WriteLine("Max iterations reached");
-            else Console.WriteLine("Goal temperature reached");
+            stopWatch.Stop();
             
             Console.WriteLine("Best solution found: {0}, solution: ", _bestFitness);
-            PrintSolution(bestSolution);
+            Graph.PrintSolution(_bestSolution);
         }
         
-        private void PrintSolution(IEnumerable<int> solution)
+        public (int costFound, int[] solutionFound) GetResults()
         {
-            var prev = 0;
-            foreach (var i1 in solution) Console.Write("{0} ", i1);
-            Console.WriteLine();
+            return (_bestFitness, _bestSolution);
         }
         
         private void SwapToNeighbour(int[] solution, int i, int j)
@@ -104,56 +96,45 @@ namespace TSP.Algorithms
             Array.Reverse(solution, min, max - min + 1);
         }
 
-        public SimulatedAnnealing(Graph graph, int startVertex) : base(graph, startVertex)
-        {
-        }
-
         private double GetAcceptProbability(float fitness)
         {
-            return Math.Exp(-1*Math.Abs(fitness - _currentFitness) / temp);
+            return Math.Exp(-1*Math.Abs(fitness - _currentFitness) / _temp);
         }
 
         private void SetNewSolution(int[] solutionCandidate)
         {
-            int solutionCandidateFitness = _graph.GetCost(solutionCandidate);
+            var solutionCandidateFitness = _graph.GetCost(solutionCandidate);
             if (solutionCandidateFitness < _currentFitness)
             {
                 _currentFitness = solutionCandidateFitness;
-                Array.Copy(solutionCandidate, _currSolution, size);
+                Array.Copy(solutionCandidate, _currSolution, _size);
                 if (!(_currentFitness < _bestFitness)) return;
                 _bestFitness = _currentFitness;
-                Array.Copy(_currSolution, bestSolution, size);
+                Array.Copy(_currSolution, _bestSolution, _size);
             }
 
             else if (_randGen.NextDouble() < GetAcceptProbability(solutionCandidateFitness))
             {
                 _currentFitness = solutionCandidateFitness;
-                Array.Copy(solutionCandidate, _currSolution, size);
+                Array.Copy(solutionCandidate, _currSolution, _size);
             }
 
         }
         
-        
-
-        public SimulatedAnnealing(int[] currSolution, int[] bestSolution)
-        {
-            this._currSolution = currSolution;
-            this.bestSolution = bestSolution;
-        }
         
         private int[] GetFirstSolution()
         {
             var solution = new List<int>();
             var searchSpace = new List<int>();
 
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < _size; i++)
             {
                 searchSpace.Add(i);
             }
             
             //var currDist = 0;
             var graph = _graph.GetGraph();
-            int startVertex = _randGen.Next(0, size);
+            var startVertex = _randGen.Next(0, _size);
             solution.Add(startVertex);
             searchSpace.Remove(startVertex);
             var prevNode = startVertex;
@@ -171,5 +152,29 @@ namespace TSP.Algorithms
 
             return solution.ToArray();
         }
+        
+        
+
+        private void DecreaseTempLinearly()
+        {
+            if (_tempModifier != null) _temp -= 1 - (double) _tempModifier;
+        }
+        
+        private void DecreaseTempSlowDecrease()
+        {
+            if (_tempModifier != null) _temp /= (1 + (double) _tempModifier * _temp);
+        }
+        private void DecreaseTempGeometrically()
+        {
+            if (_tempModifier != null) _temp *= (double) _tempModifier;
+        }
+        
+    }
+
+    public enum AnnealMethod
+    {
+        Linear,
+        Geometric,
+        SlowDecrease
     }
 }

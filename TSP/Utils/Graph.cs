@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TSP.Utils
 {
@@ -40,6 +41,13 @@ namespace TSP.Utils
         {
             return _graph[a, b];
         }
+        
+        public static void PrintSolution(IEnumerable<int> solution)
+        {
+            foreach (var i1 in solution) Console.Write("{0} ", i1);
+            Console.WriteLine();
+        }
+
 
         public void Print()
         {

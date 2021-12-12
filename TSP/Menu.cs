@@ -17,6 +17,172 @@ namespace TSP
 
         private void PrintMainMenu()
         {
+            bool exit = false;
+            while (!exit)
+            {
+                Console.WriteLine(
+                    "Które zadanie projektowe należy włączyć?\n\t1. Zadanie 1\n\t2. Zadanie 2\n\t0. Wyłączyć program");
+
+                var key = Console.ReadKey();
+                Console.WriteLine();
+
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                        PrintFirstPartMenu();
+                        break;
+                    case ConsoleKey.D2:
+                        PrintSecondPartMenu();
+                        break;
+                    case ConsoleKey.D0:
+                        exit = true;
+                        break;
+                }
+            }
+        }
+
+        private void PrintSecondPartMenu()
+        {
+            var exit = false;
+            while (!exit)
+            {
+                Console.WriteLine("Co chcesz zrobić?");
+                Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf\n\t3. Przeprowadzić testy");
+                if (_currentGraph != null)
+                    Console.WriteLine(
+                        "\t4. Uruchomić algorytm Tabu Search\n\t5. Uruchomić algorytm Symulowanego wyżarzania");
+                Console.WriteLine("\t0. Wyłączyć program");
+                var key = Console.ReadKey();
+                Console.WriteLine();
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                        ReadGraphFromFile();
+                        break;
+                    case ConsoleKey.D2:
+                        GenerateRandomGraph();
+                        break;
+                    case ConsoleKey.D3:
+                        throw new NotImplementedException("Do implementacji"); //TODO: Implement this.
+                        break;
+                    case ConsoleKey.D0:
+                        exit = true;
+                        break;
+                    default:
+                    {
+                        if (_currentGraph != null)
+                            switch (key.Key)
+                            {
+                                case ConsoleKey.D4:
+                                    RunTabuSearchAlg();
+                                    break;
+                                case ConsoleKey.D5:
+                                    RunSimAnnealingAlg();
+                                    break;
+                                default:
+                                    Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
+                                    break;
+                            }
+                        else
+                            Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
+
+                        break;
+                    }
+                }
+
+            }
+        }
+        private void RunTabuSearchAlg()
+        {
+            Console.WriteLine("Wybrano Tabu search");
+            if (_currentGraph != null)
+            {
+                Console.WriteLine("Podaj czas działania algorytmu: ");
+                var timeRead = Console.ReadLine();
+                try
+                {
+                    int time = ParseFromString(timeRead);
+                    Console.WriteLine("Podaj rodzaj wyboru sąsiedztwa: \n\t1. Zamiana 2 wierzchołków (2-opt swap)\n\t" +
+                                      "2. Zamiana 2 krawędzi (2 edge exchange)\n\t3. Zamiana przez wstawienie (insertion)");
+                    var key = Console.ReadKey();
+                    SwapMethod method = SwapMethod.TwoOperatorSwap;
+                    switch (key.Key)
+                    {
+                        case (ConsoleKey.D1):
+                            method = SwapMethod.TwoOperatorSwap;
+                            break;
+                        case (ConsoleKey.D2):
+                            method = SwapMethod.TwoEdgeSwap;
+                            break;
+                        case (ConsoleKey.D3):
+                            method = SwapMethod.TwoOperatorSwap;
+                            break;
+                            
+                    }
+                    Console.WriteLine("Uruchamianie algorytmu...");
+                    new TabuSearch(_currentGraph, time, method).Start();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+        
+        private void RunSimAnnealingAlg()
+        {
+            Console.WriteLine("Wybrano Symulwane wyżarzanie");
+            if (_currentGraph != null)
+            {
+                Console.WriteLine("Podaj czas działania algorytmu: ");
+                var timeRead = Console.ReadLine();
+                try
+                {
+                    int time = ParseFromString(timeRead);
+                    Console.WriteLine("Podaj schemat schładzania:\n\t1. Geometryczny [t=t*\u03B1]\n\t" +
+                                      "2. Linearny [t=t-\u03B1]\n\t3. Wolnego spadku [t=1/(\u03B1*t)]");
+                    var key = Console.ReadKey();
+                    AnnealMethod method = AnnealMethod.Geometric;
+                    switch (key.Key)
+                    {
+                        case (ConsoleKey.D1):
+                            method = AnnealMethod.Geometric;
+                            break;
+                        case (ConsoleKey.D2):
+                            method = AnnealMethod.Linear;
+                            break;
+                        case (ConsoleKey.D3):
+                            method = AnnealMethod.SlowDecrease;
+                            break;
+                            
+                    }
+                    
+                    Console.WriteLine("\nPodaj modyfikator temperatury (puste dla dynamicznej): ");
+                    var readModifier = Console.ReadLine();
+                    if (readModifier == null)
+                        throw new ArgumentNullException(null, "Wystąpił błąd przy pobieraniu danych z klawiatury.");
+                    float? modifier;
+                    if (readModifier == "")
+                    {
+                        modifier = null;
+                    }
+                    else
+                    {
+                        modifier = int.Parse(readModifier);
+                    }
+                    Console.WriteLine("Uruchamianie algorytmu...");
+                    new SimulatedAnnealing(_currentGraph, time, method, modifier).Start();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+
+        private void PrintFirstPartMenu()
+        {
             var exit = false;
             while (!exit)
             {
@@ -217,15 +383,32 @@ namespace TSP
             Console.Write("Podaj nazwę pliku: ");
             var fileName = Console.ReadLine();
             Console.WriteLine("Odczyt z pliku: {0}", fileName);
-            var graphFileReader = new GraphFileReader(fileName);
-            try
+            if (fileName is null) return;
+            if (fileName.Split(".")[1] == "atsp")
             {
-                _currentGraph = graphFileReader.ReadFile();
+                var graphFileReader = new ATSPReader(fileName);
+                try
+                {
+                    _currentGraph = graphFileReader.ReadFile();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Wystąpił błąd podczas próby odczytania danych z plku.");
+                    Console.WriteLine("Błąd: {0}", e.Message);
+                }
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("Wystąpił błąd podczas próby odczytania danych z plku.");
-                Console.WriteLine("Błąd: {0}", e.Message);
+                var graphFileReader = new GraphFileReader(fileName);
+                try
+                {
+                    _currentGraph = graphFileReader.ReadFile();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Wystąpił błąd podczas próby odczytania danych z plku.");
+                    Console.WriteLine("Błąd: {0}", e.Message);
+                }
             }
         }
 

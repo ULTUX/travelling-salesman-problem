@@ -1,4 +1,5 @@
-﻿using TSP.Algorithms;
+﻿using System;
+using TSP.Algorithms;
 using TSP.Utils;
 
 namespace TSP
@@ -7,12 +8,14 @@ namespace TSP
     {
         private static void Main(string[] args)
         {
-            // new Menu();
+            new Menu();
 
-            // new TabuSearch(new ATSPReader("ftv47.atsp").ReadFile(), 0).Start();
-            new SimulatedAnnealing(new ATSPReader("ftv47.atsp").ReadFile(), 0).Start();
-
-            // new BranchNBoundMin(new ATSPReader("rbg403.atsp").ReadFile(), 0).Start();
+            var alg = new TabuSearch(new ATSPReader("ftv170.atsp").ReadFile(), 360000, SwapMethod.TwoOperatorSwap);
+            alg.Start();
+            var results = alg.GetResults();
+            Console.WriteLine("Results got from algorithm: best found: {0}", results.costFound);
+            Graph.PrintSolution(results.solutionFound);
+            // new SimulatedAnnealing(new ATSPReader("br17.atsp").ReadFile(),  5000).Start();
         }
     }
 }
