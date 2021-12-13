@@ -5,7 +5,7 @@ using TSP.Algorithms;
 
 namespace TSP.Utils
 {
-    public class Benchmark
+    public class FirstBenchmark
     {
         private readonly TspAlgorithm _algorithm;
         private readonly int _endSize;
@@ -17,7 +17,7 @@ namespace TSP.Utils
         private readonly Stopwatch _timer = new();
         private int _currSize;
 
-        public Benchmark(int startSize, int endSize, int step, float stepMultiplier, TspAlgorithm algorithm,
+        public FirstBenchmark(int startSize, int endSize, int step, float stepMultiplier, TspAlgorithm algorithm,
             int repeats)
         {
             _startSize = startSize;

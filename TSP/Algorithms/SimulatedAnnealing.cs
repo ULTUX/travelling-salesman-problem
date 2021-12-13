@@ -11,7 +11,6 @@ namespace TSP.Algorithms
         
         private double _temp;
         private double? _tempModifier;
-        private float _initialTemp;
         private int _currentIteration;
         
         private int[] _bestSolution;
@@ -24,8 +23,9 @@ namespace TSP.Algorithms
         private readonly int _timeConstraint;
 
         private readonly Action _reduceTemperature;
+        private double _timeTookMillis;
 
-        public SimulatedAnnealing(Graph graph, int totalMillis, AnnealMethod method, float? tempModifier) : base(graph, 0)
+        public SimulatedAnnealing(Graph graph, int totalMillis, AnnealMethod method, float? tempModifier, bool isBench) : base(graph, 0)
         {
             _timeConstraint = totalMillis;
             _tempModifier = tempModifier;
@@ -36,6 +36,7 @@ namespace TSP.Algorithms
                 AnnealMethod.SlowDecrease => DecreaseTempSlowDecrease,
                 _ => DecreaseTempGeometrically
             };
+            IsBenchmark = isBench;
         }
 
 
@@ -52,7 +53,7 @@ namespace TSP.Algorithms
             _temp = 10000000;
             
             
-            Console.WriteLine("Starting anneal...");
+            if (!IsBenchmark)  Console.WriteLine("Starting anneal...");
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             
@@ -65,9 +66,10 @@ namespace TSP.Algorithms
                 SwapToNeighbour(candidate, firstSwapPoint, secondSwapPoint);
                 SetNewSolution(candidate);
 
-                if (_bestFitness < startFitness)
+                if (!IsBenchmark && _bestFitness < startFitness)
                 {
                     Console.WriteLine("Changed solution to: {0}", _bestFitness);
+                    _timeTookMillis = stopWatch.Elapsed.TotalMilliseconds;
                 }
                 
                 _currentIteration++;
@@ -75,13 +77,16 @@ namespace TSP.Algorithms
             }
             stopWatch.Stop();
             
-            Console.WriteLine("Best solution found: {0}, solution: ", _bestFitness);
-            Graph.PrintSolution(_bestSolution);
+            if (!IsBenchmark) {
+                Console.WriteLine("Best solution found: {0}, solution: ", _bestFitness);
+                Graph.PrintSolution(_bestSolution);
+                
+            }
         }
         
-        public (int costFound, int[] solutionFound) GetResults()
+        public (int costFound, int[] solutionFound, double timeTookMillis) GetResults()
         {
-            return (_bestFitness, _bestSolution);
+            return (_bestFitness, _bestSolution, _timeTookMillis);
         }
         
         private void SwapToNeighbour(int[] solution, int i, int j)

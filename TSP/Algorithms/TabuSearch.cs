@@ -16,8 +16,9 @@ namespace TSP.Algorithms
         private int _tabuListSize;
         private readonly int _timeConstraint;
         private readonly Action<int[], int, int> _swapMethod;
+        private double _timeTookMillis;
         
-        public TabuSearch(Graph graph, int timeInMillis, SwapMethod method) : base(graph, 0)
+        public TabuSearch(Graph graph, int timeInMillis, SwapMethod method, bool isBench) : base(graph, 0)
         {
             _timeConstraint = timeInMillis;
 
@@ -28,6 +29,8 @@ namespace TSP.Algorithms
                 (SwapMethod.InsertSwap) => SwapToNeighbourInsert,
                 _ => SwapToNeighbourVertexSwap
             };
+
+            IsBenchmark = isBench;
         }
 
         /**
@@ -60,7 +63,8 @@ namespace TSP.Algorithms
                     {
                         _bestSolutionCost = currSolCost;
                         Array.Copy(currentSol, _bestSolution, currentSol.Length);
-                        Console.WriteLine("Found new best solution: " + _bestSolutionCost);
+                        if (!IsBenchmark) Console.WriteLine("Found new best solution: " + _bestSolutionCost);
+                        _timeTookMillis = stopWatch.ElapsedMilliseconds;
                     }
                     else
                     {
@@ -75,13 +79,16 @@ namespace TSP.Algorithms
                 }
             }
             stopWatch.Stop();
-            Console.WriteLine("Solution cost: " + _bestSolutionCost);
-            Graph.PrintSolution(_bestSolution);
+            if (!IsBenchmark)
+            {
+                Console.WriteLine("Solution cost: " + _bestSolutionCost);
+                Graph.PrintSolution(_bestSolution);
+            }
         }
 
-        public (int costFound, int[] solutionFound) GetResults()
+        public (int costFound, int[] solutionFound, double timeTookMillis) GetResults()
         {
-            return (_bestSolutionCost, _bestSolution);
+            return (_bestSolutionCost, _bestSolution, _timeTookMillis);
         }
         
         private bool FindNextNeighbour(int[] solution)
@@ -168,7 +175,7 @@ namespace TSP.Algorithms
             for (var i = 1; i < solution.Length; i++)
                 if (_graph.GetWeight(i - 1, i) == 0)
                 {
-                    Console.WriteLine("NOT VALID PATH FOUND!");
+                    if (!IsBenchmark) Console.WriteLine("NOT VALID PATH FOUND!");
                     return false;
                 }
 

@@ -9,6 +9,9 @@ namespace TSP
     public class Menu
     {
         private Graph _currentGraph;
+        private int? _timeConstraint;
+        private AnnealMethod? _annealMethod;
+        private SwapMethod? _swapMethod;
 
         public Menu()
         {
@@ -51,7 +54,7 @@ namespace TSP
                 if (_currentGraph != null)
                     Console.WriteLine(
                         "\t4. Uruchomić algorytm Tabu Search\n\t5. Uruchomić algorytm Symulowanego wyżarzania");
-                Console.WriteLine("\t0. Wyłączyć program");
+                Console.WriteLine("\n\tR. Reset parametrów\n\t0. Powrót");
                 var key = Console.ReadKey();
                 Console.WriteLine();
                 switch (key.Key)
@@ -64,6 +67,12 @@ namespace TSP
                         break;
                     case ConsoleKey.D3:
                         throw new NotImplementedException("Do implementacji"); //TODO: Implement this.
+                        break;
+                    case ConsoleKey.R:
+                        _timeConstraint = null;
+                        _annealMethod = null;
+                        _swapMethod = null;
+                        Console.WriteLine("Parametry zostały zresetowane.");
                         break;
                     case ConsoleKey.D0:
                         exit = true;
@@ -97,30 +106,39 @@ namespace TSP
             Console.WriteLine("Wybrano Tabu search");
             if (_currentGraph != null)
             {
-                Console.WriteLine("Podaj czas działania algorytmu: ");
-                var timeRead = Console.ReadLine();
                 try
                 {
-                    int time = ParseFromString(timeRead);
-                    Console.WriteLine("Podaj rodzaj wyboru sąsiedztwa: \n\t1. Zamiana 2 wierzchołków (2-opt swap)\n\t" +
-                                      "2. Zamiana 2 krawędzi (2 edge exchange)\n\t3. Zamiana przez wstawienie (insertion)");
-                    var key = Console.ReadKey();
-                    SwapMethod method = SwapMethod.TwoOperatorSwap;
-                    switch (key.Key)
+                    if (_timeConstraint is null)
                     {
-                        case (ConsoleKey.D1):
-                            method = SwapMethod.TwoOperatorSwap;
-                            break;
-                        case (ConsoleKey.D2):
-                            method = SwapMethod.TwoEdgeSwap;
-                            break;
-                        case (ConsoleKey.D3):
-                            method = SwapMethod.TwoOperatorSwap;
-                            break;
-                            
+                        Console.WriteLine("Podaj czas działania algorytmu: ");
+                        var timeRead = Console.ReadLine();
+                        _timeConstraint = ParseFromString(timeRead);
                     }
-                    Console.WriteLine("Uruchamianie algorytmu...");
-                    new TabuSearch(_currentGraph, time, method).Start();
+
+                    if (_swapMethod is null)
+                    {
+                        Console.WriteLine("Podaj rodzaj wyboru sąsiedztwa: \n\t1. Zamiana 2 wierzchołków (2-opt swap)\n\t" +
+                                          "2. Zamiana 2 krawędzi (2 edge exchange)\n\t3. Zamiana przez wstawienie (insertion)");
+                        var key = Console.ReadKey();
+                        switch (key.Key)
+                        {
+                            case (ConsoleKey.D1):
+                                _swapMethod = SwapMethod.TwoOperatorSwap;
+                                break;
+                            case (ConsoleKey.D2):
+                                _swapMethod = SwapMethod.TwoEdgeSwap;
+                                break;
+                            case (ConsoleKey.D3):
+                                _swapMethod = SwapMethod.TwoOperatorSwap;
+                                break;
+                            default:
+                                _swapMethod = SwapMethod.TwoOperatorSwap;
+                                break;
+                            
+                        }
+                    }
+                    Console.WriteLine("\nUruchamianie algorytmu...");
+                    new TabuSearch(_currentGraph, (int) _timeConstraint, (SwapMethod) _swapMethod, false).Start();
                 }
                 catch (Exception e)
                 {
@@ -134,27 +152,36 @@ namespace TSP
             Console.WriteLine("Wybrano Symulwane wyżarzanie");
             if (_currentGraph != null)
             {
-                Console.WriteLine("Podaj czas działania algorytmu: ");
-                var timeRead = Console.ReadLine();
                 try
                 {
-                    int time = ParseFromString(timeRead);
-                    Console.WriteLine("Podaj schemat schładzania:\n\t1. Geometryczny [t=t*\u03B1]\n\t" +
-                                      "2. Linearny [t=t-\u03B1]\n\t3. Wolnego spadku [t=1/(\u03B1*t)]");
-                    var key = Console.ReadKey();
-                    AnnealMethod method = AnnealMethod.Geometric;
-                    switch (key.Key)
+                    if (_timeConstraint is null)
                     {
-                        case (ConsoleKey.D1):
-                            method = AnnealMethod.Geometric;
-                            break;
-                        case (ConsoleKey.D2):
-                            method = AnnealMethod.Linear;
-                            break;
-                        case (ConsoleKey.D3):
-                            method = AnnealMethod.SlowDecrease;
-                            break;
+                        Console.WriteLine("Podaj czas działania algorytmu: ");
+                        var timeRead = Console.ReadLine();
+                        _timeConstraint = ParseFromString(timeRead);
+                    }
+
+                    if (_annealMethod is null)
+                    {
+                        Console.WriteLine("Podaj schemat schładzania:\n\t1. Geometryczny [t=t*\u03B1]\n\t" +
+                                          "2. Linearny [t=t-\u03B1]\n\t3. Wolnego spadku [t=1/(\u03B1*t)]");
+                        var key = Console.ReadKey();
+                        switch (key.Key)
+                        {
+                            case (ConsoleKey.D1):
+                                _annealMethod = AnnealMethod.Geometric;
+                                break;
+                            case (ConsoleKey.D2):
+                                _annealMethod = AnnealMethod.Linear;
+                                break;
+                            case (ConsoleKey.D3):
+                                _annealMethod = AnnealMethod.SlowDecrease;
+                                break;
+                            default:
+                                _annealMethod = AnnealMethod.Geometric;
+                                break;
                             
+                        }
                     }
                     
                     Console.WriteLine("\nPodaj modyfikator temperatury (puste dla dynamicznej): ");
@@ -171,7 +198,7 @@ namespace TSP
                         modifier = int.Parse(readModifier);
                     }
                     Console.WriteLine("Uruchamianie algorytmu...");
-                    new SimulatedAnnealing(_currentGraph, time, method, modifier).Start();
+                    new SimulatedAnnealing(_currentGraph, (int) _timeConstraint, (AnnealMethod) _annealMethod, modifier, false).Start();
                 }
                 catch (Exception e)
                 {
@@ -191,7 +218,7 @@ namespace TSP
                 if (_currentGraph != null)
                     Console.WriteLine("\t4. Rozwiązać problem komiwojażera algorytmem brute-force\n\t" +
                                       "5. Rozwiazać problem komiwojażera algorytmem DP\n\t6. Rozwiązać proglem komiwojadżera algorytmem B&B (min)\n\t7. Rozwiązać proglem komiwojadżera algorytmem B&B (DFS)");
-                Console.WriteLine("\t0. Wyłączyć program");
+                Console.WriteLine("\t0. Powrót");
                 var key = Console.ReadKey();
                 Console.WriteLine();
 
@@ -289,7 +316,7 @@ namespace TSP
                 }
 
                 Console.WriteLine("Uruchamianie algorytmu...");
-                new Benchmark(startVal, endVal, step, mult, algorithm, repeats).Start();
+                new FirstBenchmark(startVal, endVal, step, mult, algorithm, repeats).Start();
                 Console.WriteLine("Testy zostały przeprowadzone, plik .csv został zapisany.");
             }
             catch
