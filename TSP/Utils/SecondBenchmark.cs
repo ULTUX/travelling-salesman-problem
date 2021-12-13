@@ -6,93 +6,125 @@ namespace TSP.Utils
 {
     public class SecondBenchmark
     {
-        private int trueCost;
-        private int[] timeConstraints;
-        private int repeats;
-        private string inputFileName;
-        private Graph graph;
+        private readonly float[] _tempModifiers;
+        private readonly int[] _timeConstraints;
+        private readonly int timeConstraint;
         private AnnealMethod _annealMethod;
         private SwapMethod _swapMethod;
+        private Graph graph;
+        private string inputFileName;
+        private int repeats;
+        private int trueCost;
 
-        public SecondBenchmark(int trueCost, int[] timeConstraints, int repeats, string inputFileName, AnnealMethod annealMethod, SwapMethod swapMethod)
+        public SecondBenchmark(int trueCost, int timeConstraint, int repeats, string inputFileName,
+            AnnealMethod annealMethod, SwapMethod swapMethod, int[] timeConstraints, float[] tempModifiers)
         {
             this.trueCost = trueCost;
-            this.timeConstraints = timeConstraints;
+            this.timeConstraint = timeConstraint;
             this.repeats = repeats;
             this.inputFileName = inputFileName;
             _annealMethod = annealMethod;
             _swapMethod = swapMethod;
+            _timeConstraints = timeConstraints;
+            _tempModifiers = tempModifiers;
             Console.WriteLine("Starting benchmark...");
-            startBenchmark();
+            StartBenchmark();
         }
 
-        private void startBenchmark()
-        { 
+        private void StartBenchmark()
+        {
             Console.WriteLine("Iteration count: {0}.", repeats);
             Thread.Sleep(1000);
-            graph = inputFileName.Split(".")[1] == "atsp" ? new ATSPReader(inputFileName).ReadFile() 
+            graph = inputFileName.Split(".")[1] == "atsp"
+                ? new ATSPReader(inputFileName).ReadFile()
                 : new GraphFileReader(inputFileName).ReadFile();
-            
-            int arrIterator = 0;
-            float[,] tabuResults = new float[timeConstraints.Length, 4];
-            float[,] annealResults = new float[timeConstraints.Length, 4];
-            string[] csvHeaders = {"Czas wykonania [s]", "Najmniejsze rozwiązanie", "Największe rozwiązanie", "Średni błąd względny"};
-            foreach (var timeConstraint in timeConstraints)
+
+            var tabuResults = new float[repeats, 2];
+            var annealResults = new float[repeats, 2];
+            string[] csvHeaders = {"Czas wykonania [s]", "Znalezione rozwiązanie"};
+            Console.WriteLine("Testing for time: {0}s", timeConstraint / 1000);
+
+            for (var i = 0; i < repeats; i++)
             {
-                Console.WriteLine("Testing for time: {0}s", timeConstraint/1000);
-                int annealAvg = 0;
-                int tabuAvg = 0;
-                
-                int minCostTabu = int.MaxValue;
-                int maxCostTabu = 0;
-                
-                int minCostAnneal = int.MaxValue;
-                int maxCostAnneal = 0;
-                
-                for (int i = 0; i < repeats; i++)
+                Console.WriteLine("{0:0.00}% complete", (float) i / repeats * 100);
+
+                //Tabu search benchmark
+                var tabu = new TabuSearch(graph, timeConstraint, SwapMethod.TwoOperatorSwap, true);
+                tabu.Start();
+                var tabuResult = tabu.GetResults();
+
+                //Simulated annealing
+                var annealing = new SimulatedAnnealing(graph, timeConstraint, AnnealMethod.Geometric, null, true);
+                annealing.Start();
+                var annealResult = annealing.GetResults();
+
+                annealResults[i, 0] = (float) annealResult.timeTookMillis;
+                annealResults[i, 1] = annealResult.costFound;
+
+                tabuResults[i, 0] = (float) tabuResult.timeTookMillis;
+                tabuResults[i, 1] = tabuResult.costFound;
+            }
+
+
+            new CsvWriter("t_" + inputFileName.Split(".")[0] + "_" + _swapMethod + ".csv", csvHeaders,
+                tabuResults).WriteFile();
+            new CsvWriter("a_" + inputFileName.Split(".")[0] + "_" + _annealMethod + ".csv", csvHeaders,
+                annealResults).WriteFile();
+
+
+            string[] headers = {"Limit czasu", "Średni czas wykonania", "Średnia długość ścieżki"};
+
+            var tabuData = new float[_timeConstraints.Length, 3];
+            var annealData = new float[_timeConstraints.Length, 3];
+            var it = 0;
+            foreach (var constraint in _timeConstraints)
+            {
+                float avgRunTime = 0;
+                float avgCost = 0;
+                for (var i = 0; i < 10; i++)
                 {
-                    Console.WriteLine("{0:0.00}% complete", (float) i / repeats * 100);
-                
-                    //Tabu search benchmark
-                    TabuSearch tabu = new TabuSearch(graph,  timeConstraint, SwapMethod.TwoOperatorSwap, true);
+                    var tabu = new TabuSearch(graph, constraint, SwapMethod.TwoOperatorSwap, true);
                     tabu.Start();
-
-                    var cost = tabu.GetResults().costFound;
-                    minCostTabu = Math.Min(minCostTabu, cost);
-                    maxCostTabu = Math.Max(maxCostTabu, cost);
-                    tabuAvg += cost;
-                
-                    //Simulated annealing
-                    SimulatedAnnealing annealing = new SimulatedAnnealing(graph, timeConstraint, AnnealMethod.Geometric, null, true);
-                    annealing.Start();
-                    cost = annealing.GetResults().costFound;
-                    minCostAnneal = Math.Min(minCostAnneal, cost);
-                    maxCostAnneal = Math.Max(maxCostAnneal, cost);
-                    annealAvg += cost;
-
+                    var tabuResult = tabu.GetResults();
+                    avgRunTime += Math.Max(0, (float) tabuResult.timeTookMillis);
+                    avgCost += tabuResult.costFound;
                 }
 
-                annealAvg /= repeats;
-                tabuAvg /= repeats;
-
-                tabuResults[arrIterator, 0] = timeConstraint;
-                tabuResults[arrIterator, 1] = minCostTabu;
-                tabuResults[arrIterator, 2] = maxCostTabu;
-                tabuResults[arrIterator, 3] = ((float) tabuAvg - trueCost) / trueCost;
-                
-                annealResults[arrIterator, 0] = timeConstraint;
-                annealResults[arrIterator, 1] = minCostAnneal;
-                annealResults[arrIterator, 2] = maxCostAnneal;
-                annealResults[arrIterator, 3] = ((float) annealAvg - trueCost) / trueCost;
-
-                arrIterator++;
-
+                avgRunTime /= 10;
+                avgCost /= 10;
+                tabuData[it, 0] = constraint;
+                tabuData[it, 1] = avgRunTime;
+                tabuData[it, 2] = avgCost;
+                it++;
             }
-            new CsvWriter("t_" + inputFileName.Split(".")[0]+"_"+_swapMethod+".csv", csvHeaders,
-                tabuResults).WriteFile();
-            new CsvWriter("a_" + inputFileName.Split(".")[0]+"_"+_annealMethod+".csv", csvHeaders,
-                annealResults).WriteFile();
-            
+
+            it = 0;
+            foreach (var tempModifier in _tempModifiers)
+            {
+                float avgRunTime = 0;
+                float avgCost = 0;
+                for (var i = 0; i < 10; i++)
+                {
+                    var annealing = new SimulatedAnnealing(graph, timeConstraint, AnnealMethod.Geometric, tempModifier,
+                        true);
+                    annealing.Start();
+                    var annealResult = annealing.GetResults();
+                    avgRunTime += (float) annealResult.timeTookMillis;
+                    avgCost += annealResult.costFound;
+                }
+
+                avgRunTime /= 10;
+                avgCost /= 10;
+                annealData[it, 0] = tempModifier;
+                annealData[it, 1] = avgRunTime;
+                annealData[it, 2] = avgCost;
+                it++;
+            }
+
+            new CsvWriter("t_chart_" + inputFileName.Split(".")[0] + "_" + _swapMethod + ".csv", headers,
+                tabuData).WriteFile();
+            new CsvWriter("a_chart_" + inputFileName.Split(".")[0] + "_" + _annealMethod + ".csv", headers,
+                annealData).WriteFile();
         }
     }
 }

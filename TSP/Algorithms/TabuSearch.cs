@@ -10,14 +10,14 @@ namespace TSP.Algorithms
     public class TabuSearch : TspAlgorithm
     {
         private readonly Random _random = new();
+        private readonly Action<int[], int, int> _swapMethod;
         private readonly Collection<(int, int)> _tabuList = new();
+        private readonly int _timeConstraint;
         private int[] _bestSolution;
         private int _bestSolutionCost;
         private int _tabuListSize;
-        private readonly int _timeConstraint;
-        private readonly Action<int[], int, int> _swapMethod;
-        private double _timeTookMillis;
-        
+        private double _timeTookMillis = -1;
+
         public TabuSearch(Graph graph, int timeInMillis, SwapMethod method, bool isBench) : base(graph, 0)
         {
             _timeConstraint = timeInMillis;
@@ -40,7 +40,7 @@ namespace TSP.Algorithms
         {
         }
 
-        
+
         public override void Start()
         {
             var currentSol = GetFirstSolution();
@@ -64,7 +64,7 @@ namespace TSP.Algorithms
                         _bestSolutionCost = currSolCost;
                         Array.Copy(currentSol, _bestSolution, currentSol.Length);
                         if (!IsBenchmark) Console.WriteLine("Found new best solution: " + _bestSolutionCost);
-                        _timeTookMillis = stopWatch.ElapsedMilliseconds;
+                        _timeTookMillis = stopWatch.Elapsed.TotalMilliseconds;
                     }
                     else
                     {
@@ -72,12 +72,14 @@ namespace TSP.Algorithms
                     }
                 }
 
+
                 if (numIterationsNotChanged >= 10 * _graph.GetSize())
                 {
                     currentSol = GetFirstSolution();
                     numIterationsNotChanged = 0;
                 }
             }
+
             stopWatch.Stop();
             if (!IsBenchmark)
             {
@@ -90,7 +92,7 @@ namespace TSP.Algorithms
         {
             return (_bestSolutionCost, _bestSolution, _timeTookMillis);
         }
-        
+
         private bool FindNextNeighbour(int[] solution)
         {
             var bestLocalCost = int.MaxValue;
@@ -129,8 +131,8 @@ namespace TSP.Algorithms
             Array.Copy(bestLocalSolution, solution, bestLocalSolution.Length);
             return true;
         }
-        
-        
+
+
         private int[] FindBestNeighbourhoodMethod(int[] currSol, int i, int j)
         {
             var secondSol = new int[currSol.Length];
@@ -181,7 +183,7 @@ namespace TSP.Algorithms
 
             return true;
         }
-        
+
         private void PushToTabu(int val1, int val2)
         {
             _tabuList.Add((val1, val2));
@@ -189,7 +191,7 @@ namespace TSP.Algorithms
                 while (_tabuList.Count > _tabuListSize)
                     _tabuList.RemoveAt(0);
         }
-        
+
 
         private bool IsPresentInTabu(int val1, int val2)
         {
@@ -210,7 +212,7 @@ namespace TSP.Algorithms
             {
                 searchSpace.Add(i);
             }
-            
+
             //var currDist = 0;
             var graph = _graph.GetGraph();
             var startVertex = _random.Next(0, _graph.GetSize());
