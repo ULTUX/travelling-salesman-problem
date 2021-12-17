@@ -65,6 +65,7 @@ namespace TSP.Algorithms
                         Array.Copy(currentSol, _bestSolution, currentSol.Length);
                         if (!IsBenchmark) Console.WriteLine("Found new best solution: " + _bestSolutionCost);
                         _timeTookMillis = stopWatch.Elapsed.TotalMilliseconds;
+                        numIterationsNotChanged = 0;
                     }
                     else
                     {

@@ -45,12 +45,12 @@ namespace TSP.Algorithms
             //Init fields, could not do that in constructor bcs one object of this class can be ran multiple times
             //with different input values (Benchmarking purposes).
             _size = _graph.GetSize();
-            _tempModifier ??= 0.999999;
+            _tempModifier ??= 0.99999;
             _currentIteration = 0;
             _currSolution = GetFirstSolution();
             _currentFitness = _graph.GetCost(_currSolution);
             _bestSolution = _currSolution.Clone() as int[];
-            _temp = 10000000;
+            _temp = 5000;
 
 
             if (!IsBenchmark) Console.WriteLine("Starting anneal...");
@@ -161,7 +161,7 @@ namespace TSP.Algorithms
 
         private void DecreaseTempLinearly()
         {
-            if (_tempModifier != null) _temp -= 1 - (double) _tempModifier;
+            if (_tempModifier != null) _temp -= (double) _tempModifier;
         }
 
         private void DecreaseTempSlowDecrease()
