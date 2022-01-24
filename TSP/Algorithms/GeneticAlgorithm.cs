@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using TSP.Utils;
 
 namespace TSP.Algorithms
@@ -14,38 +12,37 @@ namespace TSP.Algorithms
 
         private readonly int _timeConstraint;
         private int _bestCost = int.MaxValue;
-        private int[] _bestSolution;
+        private readonly int[] _bestSolution;
 
         private List<int[]> _population;
         private float[] _populationFitness;
-        private int populationSize;
-        private float mutationRate;
-        private float crossoverRate;
-        private CoMethod _coMethod;
-        
-        private double _timeTookMillis;
-        
-        
+        private readonly int _populationSize;
+        private readonly float _mutationRate;
+        private readonly float _crossoverRate;
+        private readonly Func<int[], int[], (int[], int[])> _coFunc;
+
         public GeneticAlgorithm(Graph graph, int totalMillis, int populationSize, float crossoverRate, float mutationRate, CoMethod coMethod) : base(graph, 0)
         {
-            this.populationSize = populationSize;
+            _populationSize = populationSize;
             _timeConstraint = totalMillis;
-            this.mutationRate = mutationRate;
-            this.crossoverRate = crossoverRate;
-            _coMethod = coMethod;
+            _mutationRate = mutationRate;
+            _crossoverRate = crossoverRate;
             _populationFitness = new float[populationSize];
             _bestSolution = new int[graph.GetSize()];
             CreatePopulation();
+            _coFunc = coMethod switch
+            {
+                CoMethod.OrderedCo => OrderedCo,
+                CoMethod.PartiallyMappedCo => PartialCo,
+                _ => null
+            };
         }
 
-        public void test()
-        {
-            OrderedCo(new[] {1, 2, 3, 4, 5, 6, 7, 8, 9}, new[] {5, 3, 6, 7, 8, 1, 2, 9, 4});
-        }
+
         public override void Start()
         {
 
-            Stopwatch timeTaken = new Stopwatch();
+            var timeTaken = new Stopwatch();
             
             timeTaken.Start();
             CreatePopulation();
@@ -54,23 +51,25 @@ namespace TSP.Algorithms
             while (timeTaken.Elapsed.TotalMilliseconds < _timeConstraint)
             {
                 CalcFitness();
-                for (int i = 0; i < populationSize; i++)
+                for (var i = 0; i < _populationSize; i++)
                 {
-                    if (_graph.GetCost(_population[populationSize-1]) < _bestCost)
-                    {
-                        _bestCost = _graph.GetCost(_population[populationSize-1]);
-                        Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}", _bestCost, _population.Count);
-                    }
+                    if (_graph.GetCost(_population[_populationSize - 1]) >= _bestCost) continue;
+                    _bestCost = _graph.GetCost(_population[_populationSize-1]);
+                    Array.Copy(_population[_populationSize-1], _bestSolution, _bestSolution.Length);
+                    Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}", _bestCost, _population.Count);
                 }
                 NextGeneration();
                 generations++;
             }
+            
+            Console.WriteLine("Genetic algorithm finished, took {0} generations.\nCost of best solution is {1}", 
+                generations, _bestCost);
         }
 
         private void CreatePopulation()
         {
             var population = new List<int[]>();
-            for (var i = 0; i < populationSize; i++)
+            for (var i = 0; i < _populationSize; i++)
             {
                 IEnumerable<int> popMem = Enumerable.Range(0, _graph.GetSize()).OrderBy(_ => _randGen.Next());
                 var enumerable = popMem.ToList();
@@ -107,7 +106,7 @@ namespace TSP.Algorithms
             _population = _population.OrderBy(mem => _populationFitness[_population.IndexOf(mem)]).ToList();
             _populationFitness = _populationFitness.OrderBy((fitness) => fitness).ToArray();
 
-            for (int i = 1; i < _populationFitness.Length; i++)
+            for (var i = 1; i < _populationFitness.Length; i++)
             {
                 _populationFitness[i] += _populationFitness[i - 1];
             }
@@ -117,7 +116,7 @@ namespace TSP.Algorithms
         private void NextGeneration()
         {
             var newPop = new List<int[]>();
-            for (var i = 0; i < populationSize; i++)
+            for (var i = 0; i < _populationSize; i++)
             {
                 var rand = (float) _randGen.NextDouble();
                 var pIndex = 0;
@@ -136,40 +135,33 @@ namespace TSP.Algorithms
             for (var i = 0; i < newPop.Count; i += 2)
             {
                 if (i + 1 >= newPop.Count) break;
-                if (_randGen.NextDouble() <= crossoverRate)
-                {
-                    var (item1, item2) = OrderedCo(newPop[i], newPop[i + 1]);
-                    newPop.Remove(newPop[i]);
-                    newPop.Remove(newPop[i]);
-                    newPop.Add(item1);
-                    newPop.Add(item2);
-                }
+                if (!(_randGen.NextDouble() <= _crossoverRate)) continue;
+                var (item1, item2) = _coFunc(newPop[i], newPop[i + 1]);
+                newPop.Remove(newPop[i]);
+                newPop.Remove(newPop[i]);
+                newPop.Add(item1);
+                newPop.Add(item2);
             }
 
-            foreach (var t in newPop)
+            foreach (var t in newPop.Where(_ => _randGen.NextDouble() < _mutationRate))
             {
-                if (_randGen.NextDouble() < mutationRate)
-                {
-                    int i1, i2;
+                int i1, i2;
 
-                    do
-                    {
-                        i1 = _randGen.Next(_graph.GetSize());
-                        i2 = _randGen.Next(_graph.GetSize());
-                    } while (i1 == i2);
+                do
+                {
+                    i1 = _randGen.Next(_graph.GetSize());
+                    i2 = _randGen.Next(_graph.GetSize());
+                } while (i1 == i2);
                 
-                    SwapToNeighbour2(t, i1, i2);
-                }
+                SwapToNeighbour2(t, i1, i2);
             }
             _population = newPop;
         }
 
 
-        private bool IsInSubArr(int[] arr, int start, int end, int val)
+        private bool IsInSubArr(IReadOnlyList<int> arr, int start, int end, int val)
         {
-            bool isIn = false;
-
-            for (int i = start; i <= end; i++)
+            for (var i = start; i <= end; i++)
             {
                 if (arr[i] == val) return true;
             }
@@ -213,13 +205,13 @@ namespace TSP.Algorithms
                 p2Cp.RemoveAt(0);
             }
 
-            for (int i = 0; i < p1Cp.Count; i++)
+            for (var i = 0; i < p1Cp.Count; i++)
             {
                 if (!IsInSubArr(child2, start, end, p1Cp[i])) continue;
                 p1Cp.RemoveAt(i);
                 i--;
             }
-            for (int i = 0; i < p2Cp.Count; i++)
+            for (var i = 0; i < p2Cp.Count; i++)
             {
                 if (!IsInSubArr(child, start, end, p2Cp[i])) continue;
                 p2Cp.RemoveAt(i);
@@ -231,9 +223,9 @@ namespace TSP.Algorithms
             using var en2 = p2Cp.GetEnumerator();
             en2.MoveNext();
 
-            for (int i = end+1; i%child.Length != start; i++)
+            for (var i = end+1; i%child.Length != start; i++)
             {
-                int index = i % child.Length;
+                var index = i % child.Length;
                 child[index] = en2.Current;
                 en2.MoveNext();
 
@@ -242,6 +234,67 @@ namespace TSP.Algorithms
             }
             
 
+
+            return (child, child2);
+        }
+
+        private (int[], int[]) PartialCo(int[] p1, int[] p2)
+        {
+            var child = Enumerable.Repeat(-1, p1.Length).ToArray();
+            var child2 = Enumerable.Repeat(-1, p1.Length).ToArray();
+
+            var start = _randGen.Next(p1.Length);
+            var end = _randGen.Next(p1.Length);
+            
+            while (start == end) start = _randGen.Next(p1.Length);
+
+            var temp = start;
+            start = start < end ? start : end;
+            end = end > temp ? end : temp;
+
+
+            for (var i = start; i <= end; i++)
+            {
+                child[i] = p1[i];
+                child2[i] = p2[i];
+            }
+
+            for (var i = start; i <= end; i++)
+            {
+                if (child.Contains(p2[i])) continue;
+                var indexP2 = Array.IndexOf(p2, p1[i]);
+                while (indexP2 >= start && indexP2 <= end)
+                {
+                    indexP2 = Array.IndexOf(p2, p1[indexP2]);
+                }
+
+                child[indexP2] = p2[i];
+            }
+            
+            for (var i = start; i <= end; i++)
+            {
+                if (child2.Contains(p1[i])) continue;
+                var indexP1 = Array.IndexOf(p1, p2[i]);
+                while (indexP1 >= start && indexP1 <= end)
+                {
+                    indexP1 = Array.IndexOf(p1, p2[indexP1]);
+                } 
+
+                child2[indexP1] = p1[i];
+            }
+
+            for (var i = 0; i < p1.Length; i++)
+            {
+                if (child[i] == -1)
+                {
+                    child[i] = p2[i];
+                }
+
+                if (child2[i] == -1)
+                {
+                    child2[i] = p1[i];
+                }
+            }
 
             return (child, child2);
         }

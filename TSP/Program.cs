@@ -9,7 +9,7 @@ namespace TSP
         {
             // new Menu();
 
-            new GeneticAlgorithm(new ATSPReader("ftv47.atsp").ReadFile(), 1000000, 1000, 0.8f, 0.01f,
+            new GeneticAlgorithm(new ATSPReader("ftv47.atsp").ReadFile(), 60000, 1500, 0.8f, 0.03f,
                 CoMethod.OrderedCo).Start();
 
             // new TabuSearch(new ATSPReader("ftv47.atsp").ReadFile(),
