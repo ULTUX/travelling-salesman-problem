@@ -37,8 +37,7 @@ namespace TSP.Algorithms
                 _ => null
             };
         }
-
-
+        
         public override void Start()
         {
 
@@ -158,18 +157,6 @@ namespace TSP.Algorithms
             _population = newPop;
         }
 
-
-        private bool IsInSubArr(IReadOnlyList<int> arr, int start, int end, int val)
-        {
-            for (var i = start; i <= end; i++)
-            {
-                if (arr[i] == val) return true;
-            }
-
-            return false;
-        }
-        
-
         private (int[], int[]) OrderedCo(int[] p1, int[] p2)
         {
             var child = new int[p1.Length];
@@ -177,14 +164,7 @@ namespace TSP.Algorithms
             var p1Cp = p1.ToList();
             var p2Cp = p2.ToList();
 
-            var start = _randGen.Next(p1.Length);
-            var end = _randGen.Next(p1.Length);
-            
-            while (start == end) start = _randGen.Next(p1.Length);
-
-            var temp = start;
-            start = start < end ? start : end;
-            end = end > temp ? end : temp;
+            var (start, end) = GetRandMinMax(p1.Length);
 
             for (var i = start; i <= end; i++)
             {
@@ -233,8 +213,6 @@ namespace TSP.Algorithms
                 en1.MoveNext();
             }
             
-
-
             return (child, child2);
         }
 
@@ -242,16 +220,7 @@ namespace TSP.Algorithms
         {
             var child = Enumerable.Repeat(-1, p1.Length).ToArray();
             var child2 = Enumerable.Repeat(-1, p1.Length).ToArray();
-
-            var start = _randGen.Next(p1.Length);
-            var end = _randGen.Next(p1.Length);
-            
-            while (start == end) start = _randGen.Next(p1.Length);
-
-            var temp = start;
-            start = start < end ? start : end;
-            end = end > temp ? end : temp;
-
+            var (start, end) = GetRandMinMax(p1.Length);
 
             for (var i = start; i <= end; i++)
             {
@@ -285,22 +254,35 @@ namespace TSP.Algorithms
 
             for (var i = 0; i < p1.Length; i++)
             {
-                if (child[i] == -1)
-                {
-                    child[i] = p2[i];
-                }
-
-                if (child2[i] == -1)
-                {
-                    child2[i] = p1[i];
-                }
+                if (child[i] == -1) child[i] = p2[i];
+                if (child2[i] == -1) child2[i] = p1[i];
             }
 
             return (child, child2);
         }
         
+        private (int, int) GetRandMinMax(int maxRange)
+        {
+            int min, max;
+
+            do
+            {
+                min = _randGen.Next(maxRange);
+                max = _randGen.Next(maxRange);
+            } while (min >= max);
+
+            return (min, max);
+        }
         
-        
+        private static bool IsInSubArr(IReadOnlyList<int> arr, int start, int end, int val)
+        {
+            for (var i = start; i <= end; i++)
+            {
+                if (arr[i] == val) return true;
+            }
+
+            return false;
+        }
     }
 
     public enum CoMethod
