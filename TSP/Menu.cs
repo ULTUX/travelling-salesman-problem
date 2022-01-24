@@ -12,6 +12,10 @@ namespace TSP
         private int? _timeConstraint;
         private AnnealMethod? _annealMethod;
         private SwapMethod? _swapMethod;
+        private CoMethod? _coMethod;
+        private int? _populationSize;
+        private float? _cxRate;
+        private float? _mtRate;
 
         public Menu()
         {
@@ -20,11 +24,11 @@ namespace TSP
 
         private void PrintMainMenu()
         {
-            bool exit = false;
+            var exit = false;
             while (!exit)
             {
                 Console.WriteLine(
-                    "Które zadanie projektowe należy włączyć?\n\t1. Zadanie 1\n\t2. Zadanie 2\n\t0. Wyłączyć program");
+                    "Które zadanie projektowe należy włączyć?\n\t1. Zadanie 1\n\t2. Zadanie 2\n\t3. Zadanie 3\n\t0. Wyłączyć program");
 
                 var key = Console.ReadKey();
                 Console.WriteLine();
@@ -37,10 +41,121 @@ namespace TSP
                     case ConsoleKey.D2:
                         PrintSecondPartMenu();
                         break;
+                    case ConsoleKey.D3:
+                        PrintThirdPartMenu();
+                        break;
                     case ConsoleKey.D0:
                         exit = true;
                         break;
                 }
+            }
+        }
+
+        private void PrintThirdPartMenu()
+        {
+            var exit = false;
+            while (!exit)
+            {
+                Console.WriteLine("Co chcesz zrobić?");
+                Console.WriteLine("\t1. Wczytać graf z pliku.\n\t2. Wygenerować losowy graf\n\t3. Przeprowadzić testy");
+                if (_currentGraph != null)
+                    Console.WriteLine(
+                        "\t4. Uruchomić algorytm genetyczny");
+                Console.WriteLine("\n\tR. Reset parametrów\n\t0. Powrót");
+                var key = Console.ReadKey();
+                Console.WriteLine();
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                        ReadGraphFromFile();
+                        break;
+                    case ConsoleKey.D2:
+                        GenerateRandomGraph();
+                        break;
+                    case ConsoleKey.R:
+                        _timeConstraint = null;
+                        _annealMethod = null;
+                        _swapMethod = null;
+                        Console.WriteLine("Parametry zostały zresetowane.");
+                        break;
+                    case ConsoleKey.D0:
+                        exit = true;
+                        break;
+                    default:
+                    {
+                        if (_currentGraph != null)
+                            switch (key.Key)
+                            {
+                                case ConsoleKey.D4:
+                                    RunGeneticAlg();
+                                    break;
+                                default:
+                                    Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
+                                    break;
+                            }
+                        else
+                            Console.WriteLine("Zły wybór, spróbuj jeszcze raz.");
+
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        private void RunGeneticAlg()
+        {
+            Console.WriteLine("Wybrano algorytm genetyczny");
+            if (_currentGraph == null) return;
+            try
+            {
+                if (_timeConstraint is null)
+                {
+                    Console.WriteLine("Podaj czas działania algorytmu: ");
+                    var timeRead = Console.ReadLine();
+                    _timeConstraint = ParseFromString(timeRead);
+                }
+
+                if (_coMethod is null)
+                {
+                    Console.WriteLine("Wybierz metodę krzyżowania:\n\t1. Partially matched crossover (PMX)\n\t" +
+                                      "2. Order crossover (OX)\n");
+                    var key = Console.ReadKey();
+                    _coMethod = key.Key switch
+                    {
+                        (ConsoleKey.D1) => CoMethod.PartiallyMappedCo,
+                        (ConsoleKey.D2) => CoMethod.OrderedCo,
+                        _ => CoMethod.OrderedCo
+                    };
+                }
+
+                if (_populationSize is null)
+                {
+                    Console.WriteLine("\nPodaj wielkość populacji: ");
+                    var popSize = Console.ReadLine();
+                    _populationSize = ParseFromString(popSize);
+                }
+
+                if (_cxRate is null)
+                {
+                    Console.WriteLine("Podaj współczynnik krzyżowania: ");
+                    var cx = Console.ReadLine();
+                    _cxRate = float.Parse(cx ?? throw new InvalidOperationException("Nie podano żadnej wartości."));
+                }
+
+                if (_mtRate is null)
+                {
+                    Console.WriteLine("Podaj współczynnik mutacji: ");
+                    var mt = Console.ReadLine();
+                    _mtRate = float.Parse(mt ?? throw new InvalidOperationException("Nie podano żadnej wartości."));
+                }
+                Console.WriteLine("\nUruchamianie algorytmu...");
+                Thread.Sleep(1000);
+                new GeneticAlgorithm(_currentGraph, (int) _timeConstraint, (int) _populationSize, (float) _cxRate, (float) _mtRate, (CoMethod) _coMethod).Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 

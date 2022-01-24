@@ -7,10 +7,10 @@ namespace TSP
     {
         private static void Main(string[] args)
         {
-            // new Menu();
+            new Menu();
 
-            new GeneticAlgorithm(new ATSPReader("ftv47.atsp").ReadFile(), 60000, 1500, 0.8f, 0.03f,
-                CoMethod.OrderedCo).Start();
+            // new GeneticAlgorithm(new ATSPReader("ftv47.atsp").ReadFile(), 60000, 1500, 0.8f, 0.03f,
+            //     CoMethod.OrderedCo).Start();
 
             // new TabuSearch(new ATSPReader("ftv47.atsp").ReadFile(),
             //     1000, SwapMethod.InsertSwap, false).Start();
