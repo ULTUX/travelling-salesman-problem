@@ -7,17 +7,23 @@ namespace TSP
     {
         private static void Main(string[] args)
         {
-            new Menu();
+            // new Menu();
 
             // new GeneticAlgorithm(new ATSPReader("ftv47.atsp").ReadFile(), 60000, 1500, 0.8f, 0.03f,
             //     CoMethod.OrderedCo).Start();
 
             // new TabuSearch(new ATSPReader("ftv47.atsp").ReadFile(),
             //     1000, SwapMethod.InsertSwap, false).Start();
-            // int[] times = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
-            // float[] tempMods = {0.7f, 0.75f, 0.80f, 0.85f, 0.9f, 0.95f, 0.99f, 0.999f, 0.9999f, 0.99999f};
-            // new SecondBenchmark(39, 1000, 10, "rbg403.atsp", AnnealMethod.SlowDecrease, SwapMethod.InsertSwap, times,
-            // tempMods);
+            int[] times = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+            float[] tempMods = {0.7f, 0.75f, 0.80f, 0.85f, 0.9f, 0.95f, 0.99f, 0.999f, 0.9999f, 0.99999f};
+            int[] popSizes =
+            {
+                100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000
+            };
+            new SecondBenchmark(39, 1000, 10, "ftv47.atsp", null, 
+                null, CoMethod.OrderedCo, times, tempMods, popSizes, 0.8f, 0.01f);
+
+        }
         }
 
 
@@ -28,4 +34,3 @@ namespace TSP
         // Graph.PrintSolution(results.solutionFound);
         // new SimulatedAnnealing(new ATSPReader("br17.atsp").ReadFile(),  5000).Start();
     }
-}

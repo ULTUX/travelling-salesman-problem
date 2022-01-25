@@ -151,7 +151,7 @@ namespace TSP
                 }
                 Console.WriteLine("\nUruchamianie algorytmu...");
                 Thread.Sleep(1000);
-                new GeneticAlgorithm(_currentGraph, (int) _timeConstraint, (int) _populationSize, (float) _cxRate, (float) _mtRate, (CoMethod) _coMethod).Start();
+                new GeneticAlgorithm(_currentGraph, (int) _timeConstraint, (int) _populationSize, (float) _cxRate, (float) _mtRate, (CoMethod) _coMethod, false).Start();
             }
             catch (Exception e)
             {

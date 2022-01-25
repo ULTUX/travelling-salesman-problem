@@ -12,7 +12,7 @@ namespace TSP.Algorithms
 
         private readonly int _timeConstraint;
         private int _bestCost = int.MaxValue;
-        private readonly int[] _bestSolution;
+        private int[] _bestSolution;
 
         private List<int[]> _population;
         private float[] _populationFitness;
@@ -20,15 +20,18 @@ namespace TSP.Algorithms
         private readonly float _mutationRate;
         private readonly float _crossoverRate;
         private readonly Func<int[], int[], (int[], int[])> _coFunc;
+        private double _timeTookMillis = -1;
+        private readonly bool _isBenchmark;
 
-        public GeneticAlgorithm(Graph graph, int totalMillis, int populationSize, float crossoverRate, float mutationRate, CoMethod coMethod) : base(graph, 0)
+
+        public GeneticAlgorithm(Graph graph, int totalMillis, int populationSize, float crossoverRate, float mutationRate, CoMethod coMethod, bool isBench) : base(graph, 0)
         {
             _populationSize = populationSize;
             _timeConstraint = totalMillis;
             _mutationRate = mutationRate;
             _crossoverRate = crossoverRate;
             _populationFitness = new float[populationSize];
-            _bestSolution = new int[graph.GetSize()];
+            _isBenchmark = isBench;
             CreatePopulation();
             _coFunc = coMethod switch
             {
@@ -40,7 +43,7 @@ namespace TSP.Algorithms
         
         public override void Start()
         {
-
+            _bestSolution = new int[_graph.GetSize()];
             var timeTaken = new Stopwatch();
             
             timeTaken.Start();
@@ -53,15 +56,16 @@ namespace TSP.Algorithms
                 for (var i = 0; i < _populationSize; i++)
                 {
                     if (_graph.GetCost(_population[_populationSize - 1]) >= _bestCost) continue;
+                    _timeTookMillis = timeTaken.Elapsed.TotalMilliseconds;
                     _bestCost = _graph.GetCost(_population[_populationSize-1]);
                     Array.Copy(_population[_populationSize-1], _bestSolution, _bestSolution.Length);
-                    Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}", _bestCost, _population.Count);
+                    if (!_isBenchmark) Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}", _bestCost, _population.Count);
                 }
                 NextGeneration();
                 generations++;
             }
             
-            Console.WriteLine("Genetic algorithm finished, took {0} generations.\nCost of best solution is {1}", 
+            if (!_isBenchmark) Console.WriteLine("Genetic algorithm finished, took {0} generations.\nCost of best solution is {1}", 
                 generations, _bestCost);
         }
 
@@ -282,6 +286,11 @@ namespace TSP.Algorithms
             }
 
             return false;
+        }
+        
+        public (int costFound, int[] solutionFound, double timeTookMillis) GetResults()
+        {
+            return (_bestCost, _bestSolution, _timeTookMillis);
         }
     }
 
