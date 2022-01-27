@@ -8,6 +8,11 @@ namespace TSP.Algorithms
 {
     public class GeneticAlgorithm : TspAlgorithm
     {
+        private readonly Func<int[], int[], (int[], int[])> _coFunc;
+        private readonly float _crossoverRate;
+        private readonly bool _isBenchmark;
+        private readonly float _mutationRate;
+        private readonly int _populationSize;
         private readonly Random _randGen = new();
 
         private readonly int _timeConstraint;
@@ -16,15 +21,11 @@ namespace TSP.Algorithms
 
         private List<int[]> _population;
         private float[] _populationFitness;
-        private readonly int _populationSize;
-        private readonly float _mutationRate;
-        private readonly float _crossoverRate;
-        private readonly Func<int[], int[], (int[], int[])> _coFunc;
         private double _timeTookMillis = -1;
-        private readonly bool _isBenchmark;
 
 
-        public GeneticAlgorithm(Graph graph, int totalMillis, int populationSize, float crossoverRate, float mutationRate, CoMethod coMethod, bool isBench) : base(graph, 0)
+        public GeneticAlgorithm(Graph graph, int totalMillis, int populationSize, float crossoverRate,
+            float mutationRate, CoMethod coMethod, bool isBench) : base(graph, 0)
         {
             _populationSize = populationSize;
             _timeConstraint = totalMillis;
@@ -40,12 +41,12 @@ namespace TSP.Algorithms
                 _ => null
             };
         }
-        
+
         public override void Start()
         {
             _bestSolution = new int[_graph.GetSize()];
             var timeTaken = new Stopwatch();
-            
+
             timeTaken.Start();
             CreatePopulation();
             CalcFitness();
@@ -57,17 +58,26 @@ namespace TSP.Algorithms
                 {
                     if (_graph.GetCost(_population[_populationSize - 1]) >= _bestCost) continue;
                     _timeTookMillis = timeTaken.Elapsed.TotalMilliseconds;
-                    _bestCost = _graph.GetCost(_population[_populationSize-1]);
-                    Array.Copy(_population[_populationSize-1], _bestSolution, _bestSolution.Length);
-                    if (!_isBenchmark) Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}", _bestCost, _population.Count);
+                    _bestCost = _graph.GetCost(_population[_populationSize - 1]);
+                    Array.Copy(_population[_populationSize - 1], _bestSolution, _bestSolution.Length);
+                    if (!_isBenchmark)
+                        Console.WriteLine("Found new best solution with cost of {0}. Current population size: {1}",
+                            _bestCost, _population.Count);
                 }
+
                 NextGeneration();
                 generations++;
             }
-            
-            if (!_isBenchmark) Console.WriteLine("Genetic algorithm finished, took {0} generations.\nCost of best solution is {1}", 
-                generations, _bestCost);
+
+            if (!_isBenchmark)
+            {
+                Console.WriteLine("Genetic algorithm finished, took {0} generations.\nCost of best solution is {1}",
+                    generations, _bestCost);
+                Console.WriteLine("Following is the best found solution: ");
+                Graph.PrintSolution(_bestSolution);
+            }
         }
+
 
         private void CreatePopulation()
         {
@@ -81,7 +91,7 @@ namespace TSP.Algorithms
 
             _population = population;
         }
-        
+
         private void SwapToNeighbour2(int[] solution, int i, int j)
         {
             var min = Math.Min(i, j);
@@ -91,10 +101,9 @@ namespace TSP.Algorithms
 
         private void CalcFitness()
         {
-            
             for (var i = 0; i < _population.Count; i++)
             {
-                _populationFitness[i] = (float) (1f/Math.Pow(_graph.GetCost(_population[i]), 4));
+                _populationFitness[i] = (float) (1f / Math.Pow(_graph.GetCost(_population[i]), 10));
             }
 
             //Normalize fitness
@@ -103,7 +112,7 @@ namespace TSP.Algorithms
             {
                 _populationFitness[i] /= fitSum;
             }
-            
+
 
             //Sort fitness ascending for weighted polling
             _population = _population.OrderBy(mem => _populationFitness[_population.IndexOf(mem)]).ToList();
@@ -113,7 +122,6 @@ namespace TSP.Algorithms
             {
                 _populationFitness[i] += _populationFitness[i - 1];
             }
-
         }
 
         private void NextGeneration()
@@ -129,9 +137,10 @@ namespace TSP.Algorithms
                     pIndex = j;
                     break;
                 }
+
                 newPop.Add((int[]) _population[pIndex].Clone());
             }
-            
+
             //Picked new population ancestors, now begin crossover
 
             _population.Clear();
@@ -155,9 +164,10 @@ namespace TSP.Algorithms
                     i1 = _randGen.Next(_graph.GetSize());
                     i2 = _randGen.Next(_graph.GetSize());
                 } while (i1 == i2);
-                
+
                 SwapToNeighbour2(t, i1, i2);
             }
+
             _population = newPop;
         }
 
@@ -183,7 +193,8 @@ namespace TSP.Algorithms
                 p1Cp.RemoveAt(0);
             }
 
-            for (var i = 0; i <= end; i++){
+            for (var i = 0; i <= end; i++)
+            {
                 var t2 = p2Cp[0];
                 p2Cp.Add(t2);
                 p2Cp.RemoveAt(0);
@@ -195,6 +206,7 @@ namespace TSP.Algorithms
                 p1Cp.RemoveAt(i);
                 i--;
             }
+
             for (var i = 0; i < p2Cp.Count; i++)
             {
                 if (!IsInSubArr(child, start, end, p2Cp[i])) continue;
@@ -207,7 +219,7 @@ namespace TSP.Algorithms
             using var en2 = p2Cp.GetEnumerator();
             en2.MoveNext();
 
-            for (var i = end+1; i%child.Length != start; i++)
+            for (var i = end + 1; i % child.Length != start; i++)
             {
                 var index = i % child.Length;
                 child[index] = en2.Current;
@@ -216,7 +228,7 @@ namespace TSP.Algorithms
                 child2[index] = en1.Current;
                 en1.MoveNext();
             }
-            
+
             return (child, child2);
         }
 
@@ -243,7 +255,7 @@ namespace TSP.Algorithms
 
                 child[indexP2] = p2[i];
             }
-            
+
             for (var i = start; i <= end; i++)
             {
                 if (child2.Contains(p1[i])) continue;
@@ -251,7 +263,7 @@ namespace TSP.Algorithms
                 while (indexP1 >= start && indexP1 <= end)
                 {
                     indexP1 = Array.IndexOf(p1, p2[indexP1]);
-                } 
+                }
 
                 child2[indexP1] = p1[i];
             }
@@ -264,7 +276,7 @@ namespace TSP.Algorithms
 
             return (child, child2);
         }
-        
+
         private (int, int) GetRandMinMax(int maxRange)
         {
             int min, max;
@@ -277,7 +289,7 @@ namespace TSP.Algorithms
 
             return (min, max);
         }
-        
+
         private static bool IsInSubArr(IReadOnlyList<int> arr, int start, int end, int val)
         {
             for (var i = start; i <= end; i++)
@@ -287,7 +299,7 @@ namespace TSP.Algorithms
 
             return false;
         }
-        
+
         public (int costFound, int[] solutionFound, double timeTookMillis) GetResults()
         {
             return (_bestCost, _bestSolution, _timeTookMillis);
